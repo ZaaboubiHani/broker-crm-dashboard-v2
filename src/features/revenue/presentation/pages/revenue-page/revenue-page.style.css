@@ -1,0 +1,33 @@
+.revenue-container{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    align-items: stretch;
+    background-color: #eee;
+}
+
+
+.search-bar{
+    display: flex;
+}
+
+.revenue-container
+.table-panel{
+    width: 100%;
+    display: flex;
+    height: calc(100% - 140px);
+}
+
+#revenue-table{
+    width: 60%;
+    margin: 0px 8px 8px 8px;
+}
+
+.revenue-container
+.user-panel{
+    width: 40%;
+    background-color: white;
+    border-radius: 8px;
+    margin: 8px 0px;
+}
+

@@ -1,26 +1,28 @@
 
+import VisitModel from "../../domain/models/visit.model";
 import VisitRespository from "../../domain/repositories/visit.repository";
-import VisitRemote from "../remotes/visit.remote";
+import PlanVisitRemote from "../remotes/visit.remote";
 
 
 export default class VisitService extends VisitRespository {
     private static _instance: VisitService | null = null;
-    private _visitRemote: VisitRemote = new VisitRemote();
+    private _planVisitRemote: PlanVisitRemote = new PlanVisitRemote();
 
     private constructor() {
         super();
     }
 
     static getInstance(): VisitService {
-        if (!VisitService._instance) {
-            VisitService._instance = new VisitService();
-
-        }
+        VisitService._instance = new VisitService();
         return VisitService._instance;
     }
 
-    async getPlans(date: Date, userId?: string): Promise<{ day: Date }[]> {
-        let response = await this._visitRemote.getPlans(date, userId);
+    async getPlans(date: Date, userId: string): Promise<{ day: Date }[]> {
+        let response = await this._planVisitRemote.getPlans(date, userId);
+        return response.data;
+    }
+    async getVisits(date: Date, userId: string): Promise<VisitModel[]> {
+        let response = await this._planVisitRemote.getVisits(date, userId);
         return response.data;
     }
 }

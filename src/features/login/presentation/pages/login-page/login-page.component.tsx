@@ -41,7 +41,7 @@ const LoginPage: React.FC = () => {
         const authorizedRoles = [UserRole.admin, UserRole.supervisor, UserRole.operator];
         if (authorizedRoles.includes(user.role!)) {
           dispatch(assignCurrentUser(user));
-          localStorage.setItem('UserRole', user.role === UserRole.admin ? 'admin' : user.role === UserRole.supervisor ? 'supervisor' : 'operator');
+          localStorage.setItem('UserRole', user.role!);
           navigate('/home');
         } else {
           localStorage.clear();
@@ -76,7 +76,7 @@ const LoginPage: React.FC = () => {
       const currentUser = await authService.getMe();
       if (currentUser && !currentUser.isBlocked) {
         dispatch(assignCurrentUser(currentUser));
-        localStorage.setItem('UserRole', currentUser.role === UserRole.admin ? 'admin' : currentUser.role === UserRole.supervisor ? 'supervisor' : 'operator');
+        localStorage.setItem('UserRole', currentUser.role!);
         navigate('/home');
       } else {
         localStorage.clear();

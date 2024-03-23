@@ -17,8 +17,11 @@ const userSlice = createSlice({
         assignCurrentUser: (state, action: PayloadAction<UserEntity>) => {
             state.currentUser = action.payload;
         },
+        getCurrentUser: (state) => {
+            return state;
+        },
     },
 });
 
-export const { assignCurrentUser } = userSlice.actions;
+export const { assignCurrentUser,getCurrentUser } = userSlice.actions;
 export default userSlice.reducer;

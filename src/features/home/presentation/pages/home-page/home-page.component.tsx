@@ -60,7 +60,7 @@ interface HomePageState {
 
 class HomePage extends Component<HomePageProps, HomePageState> {
 
-    constructor(props: any) {
+    constructor(props: HomePageProps) {
         super(props);
         this.state = {
             index: 0,
@@ -109,72 +109,25 @@ class HomePage extends Component<HomePageProps, HomePageState> {
 
     loadHomePageData = async () => {
         if (this.props.currentUser.role === UserRole.supervisor) {
-            var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, 1, this.state.sizeDelegate, this.props.currentUser!._id!);
+            var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, 1, this.state.sizeDelegate, false, undefined, this.props.currentUser!._id!);
             this.setState({ delegateVisits: visits, totalDelegate: total });
+
         }
         else {
             let supervisors = await this.userService.getUsers([UserRole.supervisor]);
-            this.setState({ supervisors: supervisors });
+            var { visits: kamVisits, total: kamTotal } = await this.visitService.getVisits(this.state.selectedDate, 1, this.state.sizeKam, this.state.kamOrder, this.state.kamProp);
+            this.setState({
+                kamVisits: kamVisits,
+                loadingVisitsData: false,
+                filteredKamVisits: kamVisits,
+                totalKam: kamTotal,
+                kamPage: 1,
+                supervisors: supervisors,
+            });
         }
         this.setState({
             isLoading: false,
         });
-        // var currentUser = await this.userService.getMe();
-
-        // if (currentUser != undefined) {
-        //     this.setState({ currentUser: currentUser });
-        // }
-
-        // if (currentUser.type === UserType.supervisor) {
-        //     var { visits: visits, total: total } = await this.visitService.getAllVisits(this.state.delegatePage,
-        //         this.state.sizeDelegate,
-        //         new Date(),
-        //         ClientType.pharmacy,
-        //         currentUser.id!,
-        //         this.state.delegateOrder,
-        //         this.state.delegateProp);
-        //     this.setState({
-        //         isLoading: false,
-        //         delegateVisits: visits,
-        //         filteredDelegateVisits: visits,
-        //         totalDelegate: total,
-        //     });
-        // } else if (currentUser.type === UserType.admin) {
-        //     var supervisors = await this.userService.getUsersByCreator(currentUser.id!, UserType.supervisor);
-        //     this.setState({
-        //         supervisors: supervisors,
-        //     });
-        //     var { visits: kamVisits, total: totalKam } = await this.visitService.getAllVisits(this.state.kamPage, this.state.sizeKam, new Date(), ClientType.wholesaler, this.state.currentUser.id!, this.state.kamOrder, this.state.kamProp);
-        //     this.setState({
-        //         kamVisits: kamVisits,
-        //         filteredKamVisits: kamVisits,
-        //         loadingVisitsData: false,
-        //         kamPage: 1,
-        //         delegatePage: 1,
-        //         totalKam: totalKam,
-        //     });
-        // }
-        // else {
-        //     var { visits: delegateVisits, total: totalDelegate } = await this.visitService.getAllVisits(this.state.delegatePage, this.state.sizeDelegate, new Date(), ClientType.pharmacy, 0, this.state.delegateOrder, this.state.delegateProp);
-        //     this.setState({
-        //         delegateVisits: delegateVisits,
-        //         filteredDelegateVisits: delegateVisits,
-        //         totalDelegate: totalDelegate,
-        //     });
-
-        //     var { visits: kamVisits, total: totalKam } = await this.visitService.getAllVisits(this.state.kamPage, this.state.sizeKam, new Date(), ClientType.wholesaler, this.state.currentUser.id!, this.state.kamOrder, this.state.kamProp);
-        //     this.setState({
-        //         kamVisits: kamVisits,
-        //         filteredKamVisits: kamVisits,
-        //         loadingVisitsData: false,
-        //         kamPage: 1,
-        //         delegatePage: 1,
-        //         totalKam: totalKam,
-        //     });
-        // }
-        // this.setState({
-        //     isLoading: false,
-        // });
     };
 
 
@@ -185,7 +138,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
         });
         if (this.props.currentUser.role === UserRole.supervisor) {
             this.setState({ loadingVisitsData: true });
-            var { visits: visits, total: total } = await this.visitService.getVisits(date, 1, this.state.sizeDelegate, this.props.currentUser._id!);
+            var { visits: visits, total: total } = await this.visitService.getVisits(date, 1, this.state.sizeDelegate, this.state.delegateOrder, this.state.delegateProp, this.props.currentUser._id!);
             this.setState({
                 delegateVisits: visits,
                 filteredDelegateVisits: visits,
@@ -193,11 +146,11 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                 delegatePage: 1,
                 loadingVisitsData: false,
             });
-        } else {
+        } else if (this.props.currentUser.role === UserRole.admin) {
 
             if (this.state.selectedSupervisor) {
                 this.setState({ loadingVisitsData: true });
-                var { visits: visits, total: total } = await this.visitService.getVisits(date, 1, this.state.sizeDelegate, this.state.selectedSupervisor!._id!);
+                var { visits: visits, total: total } = await this.visitService.getVisits(date, 1, this.state.sizeDelegate, this.state.delegateOrder, this.state.delegateProp, this.state.selectedSupervisor!._id!);
                 this.setState({
                     delegateVisits: visits,
                     filteredDelegateVisits: visits,
@@ -208,7 +161,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             else {
                 this.setState({ showSnackbar: true, snackbarMessage: 'Sélectionner un superviseur pour voir les visites' });
             }
-            var { visits: kamVisits, total: kamTotal } = await this.visitService.getVisits(date, 1, this.state.sizeDelegate);
+            var { visits: kamVisits, total: kamTotal } = await this.visitService.getVisits(date, 1, this.state.sizeKam, this.state.kamOrder, this.state.kamProp);
             this.setState({
                 kamVisits: kamVisits,
                 loadingVisitsData: false,
@@ -217,59 +170,25 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                 kamPage: 1,
             });
         }
-        // this.setState({ loadingVisitsData: true, selectedReport: undefined, kamPage: 1, delegatePage: 1, selectedVisit: undefined });
+        else {
+            this.setState({ loadingVisitsData: true });
+            var { visits: visits, total: total } = await this.visitService.getVisits(date, 1, this.state.sizeDelegate, this.state.delegateOrder, this.state.delegateProp, undefined, UserRole.delegate);
+            this.setState({
+                delegateVisits: visits,
+                filteredDelegateVisits: visits,
+                totalDelegate: total,
+                delegatePage: 1,
+            });
+            var { visits: kamVisits, total: kamTotal } = await this.visitService.getVisits(date, 1, this.state.sizeKam, this.state.kamOrder, this.state.kamProp, undefined, UserRole.kam);
+            this.setState({
+                kamVisits: kamVisits,
+                loadingVisitsData: false,
+                filteredKamVisits: kamVisits,
+                totalKam: kamTotal,
+                kamPage: 1,
+            });
+        }
 
-        // if (this.state.currentUser.type === UserType.supervisor) {
-        //     var { visits: visits, total: total } = await this.visitService.getAllVisits(1, this.state.sizeDelegate, date, ClientType.pharmacy, this.state.currentUser.id!, this.state.delegateOrder, this.state.delegateProp);
-        //     this.setState({
-        //         selectedDate: date,
-        //         delegateVisits: visits,
-        //         loadingVisitsData: false,
-        //         filteredDelegateVisits: visits,
-        //         totalDelegate: total,
-        //     });
-        // } else if (this.state.currentUser.type === UserType.admin) {
-        //     if (this.state.selectedSupervisor) {
-        //         var { visits: delegateVisits, total: totalDelegate } = await this.visitService.getAllVisits(1, this.state.sizeDelegate, date, ClientType.pharmacy, this.state.selectedSupervisor!.id!, this.state.delegateOrder, this.state.delegateProp);
-        //         this.setState({
-        //             delegateVisits: delegateVisits,
-        //             filteredDelegateVisits: delegateVisits,
-        //             totalDelegate: totalDelegate,
-        //         });
-        //     }
-        //     else{
-        //         this.setState({showSnackbar:true,snackbarMessage:'Sélectionner un superviseur pour voir les visites'});
-        //     }
-        //     var { visits: kamVisits, total: totalKam } = await this.visitService.getAllVisits(1, this.state.sizeKam, date, ClientType.wholesaler, this.state.currentUser.id!, this.state.kamOrder, this.state.kamProp);
-        //     this.setState({
-        //         selectedDate: date,
-        //         kamVisits: kamVisits,
-        //         filteredKamVisits: kamVisits,
-        //         loadingVisitsData: false,
-        //         kamPage: 1,
-        //         delegatePage: 1,
-        //         totalKam: totalKam,
-        //     });
-        // } else {
-
-        //     var { visits: delegateVisits, total: totalDelegate } = await this.visitService.getAllVisits(1, this.state.sizeDelegate, date, ClientType.pharmacy, 0, this.state.delegateOrder, this.state.delegateProp);
-        //     this.setState({
-        //         delegateVisits: delegateVisits,
-        //         filteredDelegateVisits: delegateVisits,
-        //         totalDelegate: totalDelegate,
-        //     });
-
-        //     var { visits: kamVisits, total: totalKam } = await this.visitService.getAllVisits(1, this.state.sizeKam, date, ClientType.wholesaler, this.state.currentUser.id!, this.state.kamOrder, this.state.kamProp);
-        //     this.setState({
-        //         selectedDate: date,
-        //         kamVisits: kamVisits,
-        //         filteredKamVisits: kamVisits,
-        //         loadingVisitsData: false,
-        //         kamPage: 1,
-        //         delegatePage: 1,
-        //         totalKam: totalKam,
-        //     });
-        // }
     }
 
     handleSelectSupervisor = async (supervisor?: UserModel) => {
@@ -277,7 +196,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             loadingVisitsData: true,
             selectedVisit: undefined,
         });
-        var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, 1, this.state.sizeDelegate, supervisor!._id!);
+        var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, 1, this.state.sizeDelegate, this.state.delegateOrder, this.state.delegateProp, supervisor!._id!);
         this.setState({
             selectedSupervisor: supervisor,
             delegateVisits: visits,
@@ -293,85 +212,84 @@ class HomePage extends Component<HomePageProps, HomePageState> {
     };
 
     handleKamSort = async (field: string, order: boolean) => {
-        // this.setState({
-        //     loadingVisitsData: true,
-        //     kamPage: 1,
-        //     selectedReport: undefined,
-        //     selectedVisit: undefined,
-        //     selectedCommand: undefined,
-        //     kamOrder: order,
-        //     kamProp: field,
-        // });
-
-        // var { visits: kamVisits, total: totalKam } = await this.visitService.getAllVisits(1, this.state.sizeKam, this.state.selectedDate, ClientType.wholesaler, this.state.currentUser.id!, order, field);
-        // this.setState({
-        //     kamVisits: kamVisits,
-        //     filteredKamVisits: kamVisits,
-        //     loadingVisitsData: false,
-        //     totalKam: totalKam,
-        // });
+        this.setState({
+            loadingVisitsData: true,
+            kamPage: 1,
+            selectedReport: undefined,
+            selectedVisit: undefined,
+            selectedCommand: undefined,
+            kamOrder: order,
+            kamProp: field,
+        });
+        var { visits: kamVisits, total: totalKam } = await this.visitService.getVisits(this.state.selectedDate, 1, this.state.sizeKam, order, field);
+        this.setState({
+            kamVisits: kamVisits,
+            filteredKamVisits: kamVisits,
+            loadingVisitsData: false,
+            totalKam: totalKam,
+        });
     }
 
     handleDelegateSort = async (field: string, order: boolean) => {
-        // if (this.state.currentUser.type === UserType.supervisor) {
-        //     this.setState({
-        //         loadingVisitsData: true,
-        //         selectedReport: undefined,
-        //         selectedVisit: undefined,
-        //         selectedCommand: undefined,
-        //         delegatePage: 1,
-        //         delegateOrder: order,
-        //         delegateProp: field,
-        //     });
-        //     var { visits: visits, total: total } = await this.visitService.getAllVisits(1, this.state.sizeDelegate, this.state.selectedDate, ClientType.pharmacy, this.state.currentUser.id!, order, field);
+        if (this.props.currentUser.role === UserRole.supervisor) {
+            this.setState({
+                loadingVisitsData: true,
+                selectedReport: undefined,
+                selectedVisit: undefined,
+                selectedCommand: undefined,
+                delegatePage: 1,
+                delegateOrder: order,
+                delegateProp: field,
+            });
+            var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, 1, this.state.sizeDelegate, order, field);
 
-        //     this.setState({
-        //         delegateVisits: visits,
-        //         loadingVisitsData: false,
-        //         filteredDelegateVisits: visits,
-        //         totalDelegate: total,
-        //     });
-        // }
-        // else if (this.state.currentUser.type === UserType.admin) {
-        //     if (this.state.selectedSupervisor) {
-        //         this.setState({
-        //             loadingVisitsData: true,
-        //             selectedReport: undefined,
-        //             selectedVisit: undefined,
-        //             selectedCommand: undefined,
-        //             delegatePage: 1,
-        //             delegateOrder: order,
-        //             delegateProp: field,
-        //         });
-        //         var { visits: visits, total: total } = await this.visitService.getAllVisits(1, this.state.sizeDelegate, this.state.selectedDate, ClientType.pharmacy, this.state.selectedSupervisor.id!, order, field);
+            this.setState({
+                delegateVisits: visits,
+                loadingVisitsData: false,
+                filteredDelegateVisits: visits,
+                totalDelegate: total,
+            });
+        }
+        else if (this.props.currentUser.role === UserRole.admin) {
+            if (this.state.selectedSupervisor) {
+                this.setState({
+                    loadingVisitsData: true,
+                    selectedReport: undefined,
+                    selectedVisit: undefined,
+                    selectedCommand: undefined,
+                    delegatePage: 1,
+                    delegateOrder: order,
+                    delegateProp: field,
+                });
+                var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, 1, this.state.sizeDelegate, order, field, this.state.selectedSupervisor._id);
 
-        //         this.setState({
-        //             delegateVisits: visits,
-        //             loadingVisitsData: false,
-        //             filteredDelegateVisits: visits,
-        //             totalDelegate: total,
-        //         });
-        //     }
-        // }
-        // else {
-        //     this.setState({
-        //         loadingVisitsData: true,
-        //         selectedReport: undefined,
-        //         selectedVisit: undefined,
-        //         selectedCommand: undefined,
-        //         delegatePage: 1,
-        //         delegateOrder: order,
-        //         delegateProp: field,
-        //     });
-        //     var { visits: visits, total: total } = await this.visitService.getAllVisits(1, this.state.sizeDelegate, this.state.selectedDate, ClientType.pharmacy, 0, order, field);
+                this.setState({
+                    delegateVisits: visits,
+                    loadingVisitsData: false,
+                    filteredDelegateVisits: visits,
+                    totalDelegate: total,
+                });
+            }
+        }
+        else {
+            this.setState({
+                loadingVisitsData: true,
+                selectedReport: undefined,
+                selectedVisit: undefined,
+                selectedCommand: undefined,
+                delegatePage: 1,
+                delegateOrder: order,
+                delegateProp: field,
+            });
+            var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, 1, this.state.sizeDelegate, order, field, undefined, UserRole.delegate);
 
-        //     this.setState({
-        //         delegateVisits: visits,
-        //         loadingVisitsData: false,
-        //         filteredDelegateVisits: visits,
-        //         totalDelegate: total,
-        //     });
-        // }
+            this.setState({
+                delegateVisits: visits,
+                loadingVisitsData: false,
+                filteredDelegateVisits: visits,
+                totalDelegate: total,
+            });
+        }
     }
 
     handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -379,61 +297,67 @@ class HomePage extends Component<HomePageProps, HomePageState> {
     };
 
     handleDelegatePageChange = async (page: number, size: number) => {
-        // this.setState({ loadingVisitsData: true, selectedReport: undefined, selectedVisit: undefined, selectedCommand: undefined, filteredDelegateVisits: [], delegateVisits: [] });
-        // if (this.state.currentUser.type === UserType.supervisor) {
-        //     var { visits: visits, total: total } = await this.visitService.getAllVisits(page, size, this.state.selectedDate, ClientType.pharmacy, this.state.currentUser.id!, this.state.delegateOrder, this.state.delegateProp);
-        //     this.setState({
-        //         delegatePage: page,
-        //         sizeDelegate: size,
-        //         delegateVisits: visits,
-        //         loadingVisitsData: false,
-        //         filteredDelegateVisits: visits,
-        //         totalDelegate: total
-        //     });
-        // } else if (this.state.currentUser.type === UserType.admin) {
-        //     if (this.state.selectedSupervisor) {
-        //         var { visits: delegateVisits, total: totalDelegate } = await this.visitService.getAllVisits(page, size, this.state.selectedDate, ClientType.pharmacy, this.state.selectedSupervisor.id!, this.state.delegateOrder, this.state.delegateProp);
+        this.setState({ loadingVisitsData: true, selectedReport: undefined, selectedVisit: undefined, selectedCommand: undefined, filteredDelegateVisits: [], delegateVisits: [] });
+        if (this.props.currentUser.role === UserRole.supervisor) {
+            var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, page, size, this.state.delegateOrder, this.state.delegateProp);
+            this.setState({
+                delegatePage: page,
+                sizeDelegate: size,
+                delegateVisits: visits,
+                loadingVisitsData: false,
+                filteredDelegateVisits: visits,
+                totalDelegate: total
+            });
+        } else if (this.props.currentUser.role === UserRole.admin) {
+            if (this.state.selectedSupervisor) {
+                var { visits: delegateVisits, total: totalDelegate } = await this.visitService.getVisits(this.state.selectedDate, page, size, this.state.delegateOrder, this.state.delegateProp, this.state.selectedSupervisor._id);
 
-        //         this.setState({
-        //             delegatePage: page,
-        //             sizeDelegate: size,
-        //             delegateVisits: delegateVisits,
-        //             filteredDelegateVisits: delegateVisits,
-        //             loadingVisitsData: false,
-        //             totalDelegate: totalDelegate,
-        //         });
-        //     }
-        // } else {
-        //     var { visits: delegateVisits, total: totalDelegate } = await this.visitService.getAllVisits(page, size, this.state.selectedDate, ClientType.pharmacy, 0, this.state.delegateOrder, this.state.delegateProp);
+                this.setState({
+                    delegatePage: page,
+                    sizeDelegate: size,
+                    delegateVisits: delegateVisits,
+                    filteredDelegateVisits: delegateVisits,
+                    loadingVisitsData: false,
+                    totalDelegate: totalDelegate,
+                });
+            }
+        } else {
+            var { visits: delegateVisits, total: totalDelegate } = await this.visitService.getVisits(this.state.selectedDate, page, size, this.state.delegateOrder, this.state.delegateProp, undefined, UserRole.delegate);
 
-        //     this.setState({
-        //         delegatePage: page,
-        //         sizeDelegate: size,
-        //         delegateVisits: delegateVisits,
-        //         filteredDelegateVisits: delegateVisits,
-        //         loadingVisitsData: false,
-        //         totalDelegate: totalDelegate,
-        //     });
-        // }
-        // this.setState({
-        //     delegatePage: page,
-        //     sizeDelegate: size,
-        //     loadingVisitsData: false,
-        // });
+            this.setState({
+                delegatePage: page,
+                sizeDelegate: size,
+                delegateVisits: delegateVisits,
+                filteredDelegateVisits: delegateVisits,
+                loadingVisitsData: false,
+                totalDelegate: totalDelegate,
+            });
+        }
+        this.setState({
+            delegatePage: page,
+            sizeDelegate: size,
+            loadingVisitsData: false,
+        });
     }
 
     handleKamPageChange = async (page: number, size: number) => {
-        // this.setState({ loadingVisitsData: true, kamPage: page, selectedReport: undefined, selectedVisit: undefined, selectedCommand: undefined });
+        this.setState({
+            loadingVisitsData: true,
+            kamPage: page,
+            selectedReport: undefined,
+            selectedVisit: undefined,
+            selectedCommand: undefined
+        });
 
-        // var { visits: kamVisits, total: totalKam } = await this.visitService.getAllVisits(page, size, this.state.selectedDate, ClientType.wholesaler, this.state.currentUser.id!, this.state.kamOrder, this.state.kamProp);
-        // this.setState({
-        //     kamVisits: kamVisits,
-        //     sizeKam: size,
-        //     filteredKamVisits: kamVisits,
-        //     loadingVisitsData: false,
-        //     kamPage: page,
-        //     totalKam: totalKam,
-        // });
+        var { visits: kamVisits, total: totalKam } = await this.visitService.getVisits(this.state.selectedDate, page, size, this.state.kamOrder, this.state.kamProp);
+        this.setState({
+            kamVisits: kamVisits,
+            sizeKam: size,
+            filteredKamVisits: kamVisits,
+            loadingVisitsData: false,
+            kamPage: page,
+            totalKam: totalKam,
+        });
     }
 
     componentDidMount(): void {

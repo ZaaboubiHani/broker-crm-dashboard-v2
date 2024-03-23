@@ -10,11 +10,13 @@ import StarIcon from '@mui/icons-material/Star';
 import { DotSpinner } from '@uiball/loaders';
 import VisitModel from '../../../domain/models/visit.model';
 import { VisitState } from '../../../../../core/entities/visit.entity';
+import AssignmentLateIcon from '@mui/icons-material/AssignmentLate';
+
 interface PlanPanelProps {
     id?: string;
     data: VisitModel[];
     isLoading: boolean;
-    onTaskClick: (clientId: string, date: Date, visit: VisitModel) => void;
+    onTaskClick: (visit: VisitModel,) => void;
 }
 
 const PlanPanel: React.FC<PlanPanelProps> = ({ id, data, isLoading, onTaskClick }) => {
@@ -63,9 +65,9 @@ const PlanPanel: React.FC<PlanPanelProps> = ({ id, data, isLoading, onTaskClick 
                             position: 'relative',
                             justifyContent: 'space-between', border: '1px solid teal'
                         }}>
-                            <CardActionArea onClick={() => {
+                            <CardActionArea disabled={e.state !== VisitState.done} onClick={() => {
                                 if (e.state === VisitState.done) {
-                                    onTaskClick(e.client!._id!, e.visitDate!, e);
+                                    onTaskClick(e);
                                 }
                             }}>
                                 <CardContent sx={{ margin: 0, padding: '0px 0px 4px 8px' }}>
@@ -102,7 +104,9 @@ const PlanPanel: React.FC<PlanPanelProps> = ({ id, data, isLoading, onTaskClick 
                                 </Typography>
                             </CardActionArea>
                             {
-                                e.state === VisitState.done ? (<CheckCircleIcon style={{ display: 'block', position: 'absolute', color: 'lime', right: 8, top: 8 }} />) : (<HourglassBottomIcon style={{ display: 'block', position: 'absolute', color: 'orange', right: 8, top: 8 }} />)
+                                e.state === VisitState.done ? (<CheckCircleIcon style={{ display: 'block', position: 'absolute', color: 'lime', right: 8, top: 8 }} />) : e.state === VisitState.planned
+                                    ? (<HourglassBottomIcon style={{ display: 'block', position: 'absolute', color: 'orange', right: 8, top: 8 }} />) :
+                                    (<AssignmentLateIcon style={{ display: 'block', position: 'absolute', color: 'blue', right: 8, top: 8 }} />)
                             }
                         </Card>
                     ))

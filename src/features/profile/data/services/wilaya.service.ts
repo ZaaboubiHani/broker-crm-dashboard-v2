@@ -11,9 +11,7 @@ export default class WilayaService extends WilayaRespository {
     }
 
     static getInstance(): WilayaService {
-        if (!WilayaService._instance) {
             WilayaService._instance = new WilayaService();
-        }
         return WilayaService._instance;
     }
     

@@ -1,18 +1,38 @@
+import UserEntity from "./user.entity";
+
+export enum TaskStatus {
+    pending = "Pending",
+    done = "Done",
+    ignored = "Ignored",
+    cancelled = "Cancelled",
+}
 
 
-export default class SpecialityEntity {
+export default class TaskEntity {
     _id?: string;
-    
+    action?: string;
+    task?: string;
+    region?: string;
+    startDate?: Date;
+    endDate?: Date;
+    targetRemark?: string;
+    assignerRemark?: string;
+    status?: TaskStatus;
+    assigner?: UserEntity;
+    target?: UserEntity;
+    cancelMessage?: string;
 
-    constructor(data?: Partial<SpecialityEntity>) {
+
+    constructor(data?: Partial<TaskEntity>) {
         if (data) {
             Object.assign(this, data);
         }
     }
 
-    static fromJson(json: Record<string, any>): SpecialityEntity {
-
-        return new SpecialityEntity({ ...json });
+    static fromJson(json: Record<string, any>): TaskEntity {
+        const startDate = json.startDate ? new Date(json.startDate) : undefined;
+        const endDate = json.endDate ? new Date(json.endDate) : undefined;
+        return new TaskEntity({ ...json, startDate, endDate });
     }
 
     toJson(): Record<string, any> {
@@ -20,8 +40,8 @@ export default class SpecialityEntity {
         return { ...this };
     }
 
-    copyWith(data: Partial<SpecialityEntity>): SpecialityEntity {
-        return new SpecialityEntity({ ...this, ...data });
+    copyWith(data: Partial<TaskEntity>): TaskEntity {
+        return new TaskEntity({ ...this, ...data });
     }
 
 }

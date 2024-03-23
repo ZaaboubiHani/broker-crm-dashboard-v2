@@ -37,7 +37,7 @@ export default class AuthRemote {
         try {
             var response = await Api.instance.getAxios().post(`${Globals.apiUrl}/users/login`,
                 {
-                    username: identifier,
+                    identifier: identifier,
                     password: password
                 });
             if (response.status == 200) {

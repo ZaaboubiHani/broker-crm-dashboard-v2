@@ -16,14 +16,14 @@ interface HomeTableProps {
     page: number;
     size: number;
     total: number;
-    sorting: {field:string,order:boolean};
+    sorting: { field: string, order: boolean };
     pageChange: (page: number, size: number) => void;
     sortChange: (field: string, order: boolean) => void;
 }
 
-const HomeTable: React.FC<HomeTableProps> = ({ data, id, isLoading, firstHeader, onDisplayReport, onDisplayCommand, total, size, page, sorting,pageChange, sortChange }) => {
+const HomeTable: React.FC<HomeTableProps> = ({ data, id, isLoading, firstHeader, onDisplayReport, onDisplayCommand, total, size, page, sorting, pageChange, sortChange }) => {
 
-    const [sortModel, setSortModel] = React.useState<{field:string,order:boolean}>(sorting);
+    const [sortModel, setSortModel] = React.useState<{ field: string, order: boolean }>(sorting);
     const [rowsPerPage, setRowsPerPage] = React.useState(size);
 
     const [pageIndex, setPageIndex] = React.useState(page - 1);
@@ -39,7 +39,7 @@ const HomeTable: React.FC<HomeTableProps> = ({ data, id, isLoading, firstHeader,
                 flexDirection: 'column',
                 flexGrow: '1',
                 borderRadius: '8px',
-                height:'100%'
+                height: '100%'
             }}>
             {
                 isLoading ? (<div style={{
@@ -62,24 +62,24 @@ const HomeTable: React.FC<HomeTableProps> = ({ data, id, isLoading, firstHeader,
                         <ScalableTable
                             columns={[
                                 {
-                                    field: 'username',
+                                    field: 'delegateFullName',
                                     headerName: firstHeader,
-                                    sortable:true,
+                                    sortable: true,
                                 },
                                 {
-                                    field: 'client',
+                                    field: 'clientFullName',
                                     headerName: 'Client',
-                                    sortable:true,
+                                    sortable: true,
                                 },
                                 {
-                                    field: 'speciality',
+                                    field: 'clientSpeciality',
                                     headerName: 'Spécialité',
-                                    sortable:true,
+                                    sortable: true,
                                 },
                                 {
-                                    field: 'location',
+                                    field: 'clientWilaya',
                                     headerName: 'Localisation',
-                                    sortable:true,
+                                    sortable: true,
                                 },
                                 {
                                     field: 'report',
@@ -105,10 +105,10 @@ const HomeTable: React.FC<HomeTableProps> = ({ data, id, isLoading, firstHeader,
                                 [...data.map((row) => {
                                     return {
                                         id: row._id,
-                                        username: row.user?.fullName,
-                                        client: row.client?.fullName,
-                                        speciality: row.client?.speciality?.name,
-                                        location: `${row.client?.commune ?? ''}, ${row.client?.wilaya?.name ?? ''}`,
+                                        delegateFullName: row.user?.fullName,
+                                        clientFullName: row.client?.fullName,
+                                        clientSpeciality: row.client?.speciality?.name,
+                                        clientWilaya: `${row.client?.commune ?? ''}, ${row.client?.wilaya?.name ?? ''}`,
                                         hasCommand: row.commandId !== undefined,
                                         visitLocation: row.report?.location,
                                         visit: row,
@@ -118,7 +118,7 @@ const HomeTable: React.FC<HomeTableProps> = ({ data, id, isLoading, firstHeader,
                                 size: rowsPerPage,
                                 page: pageIndex,
                             }}
-                            pageSizeOptions={[5, 10, 25, 50, 100]}
+                            pageSizeOptions={[ 5, 10, 25, 50, 100]}
                             onPaginationChange={(model) => {
                                 setPageIndex(model.page);
                                 pageChange(model.page + 1, model.size);
@@ -134,7 +134,7 @@ const HomeTable: React.FC<HomeTableProps> = ({ data, id, isLoading, firstHeader,
 
                     )
 
-               
+
             }
         </div>
     );

@@ -1,0 +1,19 @@
+.expense-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: 100%;
+    background-color: #eee;
+}
+
+.header{
+    height: 160px;
+}
+
+.table-container{
+    height: 100%;
+}
+
+.table-container table{
+    margin-top: 0;
+}

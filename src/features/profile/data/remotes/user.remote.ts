@@ -83,4 +83,23 @@ export default class UserRemote {
             return new ResponseEntity({ code: error.response.status, message: error.response.statusText, data: false });
         }
     }
+    async getSupervisors(): Promise<ResponseEntity> {
+        const token = localStorage.getItem('token');
+       
+        try {
+            var response = await Api.instance.getAxios().get(`/dashboard/users/supervisors`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.status == 200) {
+                let users: UserEntity[] = [];
+                users = response.data.map((data: any) => UserEntity.fromJson(data));
+                return new ResponseEntity({ code: response.status, data: users });
+            }
+            return new ResponseEntity({ code: response.status, data: [] });
+        } catch (error: any) {
+            return new ResponseEntity({ code: error.response.status, message: error.response.statusText, data: [] });
+        }
+    }
 }

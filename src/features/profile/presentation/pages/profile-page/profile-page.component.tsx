@@ -9,11 +9,11 @@ import CompanyModel from '../../../domain/models/company.model';
 import UserService from '../../../data/services/user.service';
 import WilayaService from '../../../data/services/wilaya.service';
 import CircleAvatar from '../../../../../core/components/circle-avatar/circle-avatar.component';
-import UserDetails from '../../../../../core/components/user-details/user-details.component';
 import UserEntity, { UserRole } from '../../../../../core/entities/user.entity';
 import UserDialog from '../../components/user-dialog/user-dialog.component';
 import CompanyService from '../../../data/services/company.service';
 import YesNoDialog from '../../../../../core/components/yes-no-dialog/yes-no-dialog.component';
+import UserDetails from '../../components/user-details/user-details.component';
 
 interface ProfilePageProps {
     currentUser: UserEntity;
@@ -21,6 +21,7 @@ interface ProfilePageProps {
 
 interface ProfilePageState {
     users: UserModel[];
+    supervisors: UserModel[];
     wilayas: WilayaModel[],
     company?: CompanyModel;
     selectedUser?: UserModel;
@@ -42,6 +43,7 @@ class ProfilePage extends Component<ProfilePageProps, ProfilePageState> {
             showSnackbar: false,
             snackbarMessage: '',
             users: [],
+            supervisors: [],
             wilayas: [],
             loadingUsers: true,
             clientDialogIsOpen: false,
@@ -104,9 +106,11 @@ class ProfilePage extends Component<ProfilePageProps, ProfilePageState> {
 
     loadProfilePageData = async () => {
         var users = await this.userService.getAllUsers();
+        var supervisors = await this.userService.getSupervisors();
         var wilayas = await this.wilayaService.getAllWilayas();
         var company = await this.companyService.getSingleCompany();
         this.setState({
+            supervisors: supervisors,
             users: users,
             loadingUsers: false,
             isLoading: false,
@@ -185,7 +189,7 @@ class ProfilePage extends Component<ProfilePageProps, ProfilePageState> {
         else {
             return (
                 <div className='profile' style={{ overflow: 'hidden' }}>
-                    <div style={{ height: '145px' }}>
+                    <div style={{ height: '165px' }}>
                         <CircleAvatar name='KW'></CircleAvatar>
                         <UserDetails
                             user={this.props.currentUser}
@@ -239,6 +243,7 @@ class ProfilePage extends Component<ProfilePageProps, ProfilePageState> {
                         }
                     </div>
                     <UserDialog
+                        supervisors={this.state.supervisors}
                         wilayas={this.state.wilayas}
                         onAdd={this.handleAddUser}
                         onEdit={this.handleEditUser}
@@ -246,6 +251,7 @@ class ProfilePage extends Component<ProfilePageProps, ProfilePageState> {
                         onClose={this.handleCloseAddClientDialog}
                         initUser={this.state.selectedUser}
                         creatorType={this.props.currentUser!.role!}
+                        creatorId={this.props.currentUser!._id!}
                     ></UserDialog>
                     <Snackbar
                         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}

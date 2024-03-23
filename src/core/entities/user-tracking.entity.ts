@@ -3,6 +3,7 @@
 export default class UserTrackingEntity {
     _id?: string;
     createdAt?: Date;
+    time?: Date;
     latitude?: string;
     longitude?: string;
 
@@ -15,7 +16,11 @@ export default class UserTrackingEntity {
     static fromJson(json: Record<string, any>): UserTrackingEntity {
         const createdAt = json.createdAt ? new Date(json.createdAt) : undefined;
         createdAt?.setHours(createdAt.getHours() + 1);
-        return new UserTrackingEntity({ ...json, createdAt });
+        const time = json.time ? new Date(json.time) : undefined;
+        time?.setHours(time.getHours() + 1);
+        let latitude = json.location.split(',')[0].trim();
+        let longitude = json.location.split(',')[1].trim();
+        return new UserTrackingEntity({ ...json, createdAt,time,latitude,longitude });
     }
 
     toJson(): Record<string, any> {

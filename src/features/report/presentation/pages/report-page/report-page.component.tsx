@@ -115,7 +115,7 @@ class ReportPage extends Component<ReportPageProps, ReportPageState> {
 
     loadRepportPageData = async () => {
         if (this.props.currentUser.role === UserRole.supervisor) {
-            let delegates = await this.userService.getUsers([UserRole.delegate]);
+            let delegates = await this.userService.getUsers();
             this.setState({ delegates: delegates, });
         }
         else {
@@ -142,51 +142,48 @@ class ReportPage extends Component<ReportPageProps, ReportPageState> {
     };
 
     handleDelegatePageChange = async (page: number, size: number) => {
-        // if (this.state.selectedDelegate) {
-        //     this.setState({ loadingVisitsData: true, delegatePage: page, reportData: undefined, selectedVisit: undefined, sizeDelegate: size });
-        //     var { visits: visits, total: total } = await this.visitService.getAllVisitsOfDelegate(page, size, this.state.selectedDate, this.state.selectedDelegate!.id!);
-        //     this.setState({
-        //         delegateVisits: visits,
-        //         loadingVisitsData: false,
-        //         totalDelegate: total,
-        //         sizeDelegate: size
-        //     });
-        // }
-        // this.setState({
-        //     loadingVisitsData: false,
-        //     sizeDelegate: size,
-        //     delegatePage: page,
-        // });
+        if (this.state.selectedDelegate) {
+            this.setState({
+                loadingVisitsData: true,
+                delegatePage: page,
+                reportData: undefined,
+                selectedVisit: undefined,
+                sizeDelegate: size
+            });
+            var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, page, size, this.state.selectedDelegate!._id!);
+            this.setState({
+                delegateVisits: visits,
+                loadingVisitsData: false,
+                totalDelegate: total,
+                sizeDelegate: size
+            });
+        }
+        this.setState({
+            loadingVisitsData: false,
+            sizeDelegate: size,
+            delegatePage: page,
+        });
     }
 
     handleKamPageChange = async (page: number, size: number) => {
-        // if (this.state.selectedKam) {
-        //     this.setState({ loadingVisitsData: true, kamPage: page, reportData: undefined, selectedVisit: undefined, sizeKam: size });
-        //     var { visits: visits, total: total } = await this.visitService.getAllVisitsOfDelegate(page, size, this.state.selectedDate, this.state.selectedKam!.id!);
-        //     this.setState({
-        //         kamVisits: visits,
-        //         loadingVisitsData: false,
-        //         totalKam: total,
-        //         sizeKam: size
-        //     });
-        // }
-        // this.setState({
-        //     loadingVisitsData: false,
-        //     kamPage: page,
-        //     sizeKam: size
-        // });
+        if (this.state.selectedKam) {
+            this.setState({ loadingVisitsData: true, kamPage: page, reportData: undefined, selectedVisit: undefined, sizeKam: size });
+            var { visits: visits, total: total } = await this.visitService.getVisits(this.state.selectedDate, page, size, this.state.selectedKam!._id!);
+            this.setState({
+                kamVisits: visits,
+                loadingVisitsData: false,
+                totalKam: total,
+                sizeKam: size
+            });
+        }
+        this.setState({
+            loadingVisitsData: false,
+            kamPage: page,
+            sizeKam: size
+        });
     }
 
-    handleDelegateRowNumChange = async (size: number) => {
-        // this.setState({ loadingVisitsData: true, delegatePage: 1, sizeDelegate: size, reportData: undefined, selectedVisit: undefined, });
-        // var { visits: visits, total: total } = await this.visitService.getAllVisitsOfDelegate(1, size, this.state.selectedDate, this.state.selectedDelegate!.id!);
-        // this.setState({ delegateVisits: visits, loadingVisitsData: false, totalDelegate: total });
-    }
-    handleKamRowNumChange = async (size: number) => {
-        // this.setState({ loadingVisitsData: true, kamPage: 1, sizeDelegate: size, reportData: undefined, selectedVisit: undefined, });
-        // var { visits: visits, total: total } = await this.visitService.getAllVisitsOfDelegate(1, size, this.state.selectedDate, this.state.selectedKam!.id!);
-        // this.setState({ kamVisits: visits, loadingVisitsData: false, totalKam: total });
-    }
+   
 
     handleSelectSupervisor = async (supervisor?: UserModel) => {
         this.setState({
@@ -203,20 +200,6 @@ class ReportPage extends Component<ReportPageProps, ReportPageState> {
             delegates: delegates,
             loadingDelegates: false,
         });
-        // this.setState({
-        //     delegatePage: 1,
-        //     delegates: [],
-        //     totalDelegate: 0,
-        //     delegateVisits: [],
-        //     loadingDelegates: true,
-        // });
-        // var delegates = await this.userService.getUsersByCreator(supervisor!.id!, UserType.delegate);
-
-        // this.setState({
-        //     selectedSupervisor: supervisor,
-        //     delegates: delegates,
-        //     loadingDelegates: false,
-        // });
     }
 
     handleTabChange = (event: React.SyntheticEvent, newValue: number) => {

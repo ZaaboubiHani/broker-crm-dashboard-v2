@@ -11,10 +11,7 @@ export default class CommandService extends CommandRespository {
     }
 
     static getInstance(): CommandService {
-        if (!CommandService._instance) {
             CommandService._instance = new CommandService();
-
-        }
         return CommandService._instance;
     }
 

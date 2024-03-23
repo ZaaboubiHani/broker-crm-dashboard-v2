@@ -12,10 +12,7 @@ export default class UserService extends UserRespository {
     }
 
     static getInstance(): UserService {
-        if (!UserService._instance) {
             UserService._instance = new UserService();
-
-        }
         return UserService._instance;
     }
 

@@ -48,7 +48,7 @@ const Sidebar: React.FC = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState<Boolean>(localStorage.getItem('sidebarOpen') === 'true');
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [userType, setUserType] = useState<string>('');
+  const [userRole, setUserRole] = useState<string>('');
   const [onHoverBool, setOnHoverBool] = useState(false);
 
   const toggleDrawer = () => {
@@ -63,8 +63,8 @@ const Sidebar: React.FC = () => {
     if (localStorage.getItem('isLogged') !== 'true') {
       navigate('/');
     } else {
-      let type = localStorage.getItem('userType');
-      setUserType(type ?? '');
+      let type = localStorage.getItem('UserRole');
+      setUserRole(type ?? '');
     }
   }
 
@@ -82,27 +82,28 @@ const Sidebar: React.FC = () => {
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      width: sidebarOpen ? '220px' : '58px',
+      width: sidebarOpen ? '236px' : '58px',
       whiteSpace: 'nowrap',
       transition: 'width 0.5s ease',
       backgroundColor: 'teal',
       borderRadius: '0px 8px 8px 0px'
     }}>
       <div style={{
-      overflowY: 'auto',
-      overflowX: 'hidden',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      width: sidebarOpen ? '220px' : '58px',
-      whiteSpace: 'nowrap',
-      transition: 'width 0.5s ease',
-      backgroundColor: 'teal',
-      borderRadius: '0px 8px 8px 0px'
-    }}>
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        width: sidebarOpen ? '236px' : '58px',
+        whiteSpace: 'nowrap',
+        transition: 'width 0.5s ease',
+        backgroundColor: 'teal',
+        borderRadius: '0px 8px 8px 0px'
+      }}>
         <Button style={{
           display: 'block', position:
-            'absolute', left: sidebarOpen ? '200px' : '38px',
+            'absolute',
+          left: sidebarOpen ? '188px' : '38px',
           bottom: "16px",
           backgroundColor: 'white',
           width: '10px',
@@ -157,14 +158,14 @@ const Sidebar: React.FC = () => {
           isOpen={sidebarOpen}
           icon={<HomeIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px', }} />}
         />
-          <NavListItem
-            name={userType === 'supervisor' ? 'Délégués' : 'Superviseurs/kam'}
-            route='/delegate'
-            isOpen={sidebarOpen}
-            icon={<BusinessCenterIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
-          />
+        <NavListItem
+          name={userRole === 'Supervisor' ? 'Délégués' : 'Superviseurs/kam'}
+          route='/user'
+          isOpen={sidebarOpen}
+          icon={<BusinessCenterIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
+        />
         {
-          userType !== 'operator' ? (<NavListItem
+          userRole !== 'Operator' ? (<NavListItem
             name='Plan de tournée'
             route='/plan'
             isOpen={sidebarOpen}
@@ -172,18 +173,18 @@ const Sidebar: React.FC = () => {
           />) : undefined
         }
         <NavListItem
-            name='Tâches'
-            route='/task'
-            isOpen={sidebarOpen}
-            icon={<ListAltIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
-          />
+          name='Tâches'
+          route='/task'
+          isOpen={sidebarOpen}
+          icon={<ListAltIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
+        />
         <NavListItem
-            name='Rapports des visites'
-            route='/report'
-            isOpen={sidebarOpen}
-            icon={<ReceiptIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
-          />
-        
+          name='Rapports des visites'
+          route='/report'
+          isOpen={sidebarOpen}
+          icon={<ReceiptIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
+        />
+
         <NavListItem
           name='Bons de commandes'
           route='/command'
@@ -191,7 +192,7 @@ const Sidebar: React.FC = () => {
           icon={<ShoppingCartIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
         />
         {
-          userType !== 'operator' ? (<NavListItem
+          userRole !== 'Operator' ? (<NavListItem
             name='Notes des frais'
             route='/expense'
             isOpen={sidebarOpen}
@@ -200,12 +201,12 @@ const Sidebar: React.FC = () => {
         }
         <NavListItem
           name='Clients'
-          route='/clients'
+          route='/client'
           isOpen={sidebarOpen}
           icon={<Diversity3Icon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
         />
         {
-          userType !== 'operator' ? (<NavListItem
+          userRole !== 'Operator' ? (<NavListItem
             name="Chiffre d'affaire"
             route='/revenue'
             isOpen={sidebarOpen}
@@ -213,7 +214,7 @@ const Sidebar: React.FC = () => {
           />) : undefined
         }
         {
-          userType !== 'operator' ? (<NavListItem
+          userRole !== 'Operator' ? (<NavListItem
             name="Statistiques"
             route='/statistics'
             isOpen={sidebarOpen}
@@ -221,13 +222,13 @@ const Sidebar: React.FC = () => {
           />) : undefined
         }
         <NavListItem
-            name="Listes prédéfinies"
-            route='/config'
-            isOpen={sidebarOpen}
-            icon={<TuneIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
-          />
+          name="Listes prédéfinies"
+          route='/config'
+          isOpen={sidebarOpen}
+          icon={<TuneIcon style={{ color: 'white', width: '30px', height: '30px', marginRight: '8px' }} />}
+        />
         {
-          userType !== 'operator' ? (<NavListItem
+          userRole !== 'Operator' ? (<NavListItem
             name="Profil"
             route='/profile'
             isOpen={sidebarOpen}
@@ -250,7 +251,7 @@ const Sidebar: React.FC = () => {
             className='logout-btn'
             style={{
               marginTop: '8px',
-              marginBottom:'60px',
+              marginBottom: '60px',
               height: '45px',
               width: '220px',
               justifyContent: 'start',

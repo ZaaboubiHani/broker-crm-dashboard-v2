@@ -11,15 +11,16 @@ export default class UserService extends UserRespository {
     }
 
     static getInstance(): UserService {
-        if (!UserService._instance) {
             UserService._instance = new UserService();
-           
-        }
         return UserService._instance;
     }
     
     async getAllUsers(): Promise<UserModel[]> {
         let response = await this._userRemote!.getAllUsers();
+        return response.data;
+    }
+    async getSupervisors(): Promise<UserModel[]> {
+        let response = await this._userRemote!.getSupervisors();
         return response.data;
     }
     async createUser(user:UserModel): Promise<UserModel | undefined> {

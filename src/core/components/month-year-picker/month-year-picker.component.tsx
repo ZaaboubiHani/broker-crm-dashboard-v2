@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import DayPicker from '../day-picker/day-picker.component';
 import MonthDropdown from '../month-dropdown/month-dropdown.component';
 import YearDropdown from '../year-dropdown/year-dropdown.component';
-import UserPicker from '../user-picker/user-picker.component';
 
 
 interface MonthYearPickerProps {

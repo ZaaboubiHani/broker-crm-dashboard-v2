@@ -11,10 +11,7 @@ export default class VisitService extends VisitRespository {
     }
 
     static getInstance(): VisitService {
-        if (!VisitService._instance) {
             VisitService._instance = new VisitService();
-           
-        }
         return VisitService._instance;
     }
 

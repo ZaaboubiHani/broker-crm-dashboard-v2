@@ -57,7 +57,7 @@ const ProfileTable: React.FC<ProfileTableProps> = ({ data, isLoading, editUser,b
                                     phone: row.phonePersonal,
                                     password: row.password,
                                     email: row.email,
-                                    type: row.role === UserRole.supervisor ? 'Superviseur' : row.role === UserRole.kam ? 'Kam' : row.role === UserRole.operator ? 'Opératrice' : 'Délégué',
+                                    type: row.role === UserRole.supervisor ? 'Superviseur' : row.role === UserRole.kam ? 'Kam' : row.role === UserRole.operator ? 'Opérateur' : 'Délégué',
                                     isBlocked: row.isBlocked,
                                     user: row,
                                 };

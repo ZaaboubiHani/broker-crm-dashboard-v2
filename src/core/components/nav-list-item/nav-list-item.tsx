@@ -15,7 +15,7 @@ interface NavListItemProps {
 
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
-    <Tooltip {...props} classes={{ popper: className }} TransitionProps={{ timeout: 250 }}/>
+    <Tooltip {...props} classes={{ popper: className }} TransitionProps={{ timeout: 250 }} />
 ))(({ theme }) => ({
     [`& .${tooltipClasses.tooltip}`]: {
         top: '-18px',
@@ -44,7 +44,7 @@ const NavListItem: React.FC<NavListItemProps> = ({ name, route, icon, isOpen }) 
                     <Typography color="inherit">{name}</Typography>
                 </React.Fragment>
             } placement='right'>
-            <a 
+            <a
                 onMouseEnter={() => {
                     setOnHoverBool(true);
                 }}
@@ -55,19 +55,19 @@ const NavListItem: React.FC<NavListItemProps> = ({ name, route, icon, isOpen }) 
                     display: 'flex',
                     backgroundColor: onHoverBool || location.pathname === route ? PRIMARY_COLOR_HIGHLIGHT : undefined,
                     height: '26px',
-                    margin:'1px 0px',
+                    margin: '1px 0px',
                     transition: 'all 300ms ease',
                     position: 'relative',
-                    padding:'8px 8px 8px 16px',
-                    alignItems:'center',
-                    textDecoration:'none',
+                    padding: '8px 0px 8px 12px',
+                    alignItems: 'center',
+                    textDecoration: 'none',
                 }} href={route}>
                 {icon}
                 <p style={{
                     color: 'white',
                     transition: 'all 0.5s ease',
                     opacity: isOpen ? '1' : '0',
-                    
+
                 }}>
                     {name}
                 </p>

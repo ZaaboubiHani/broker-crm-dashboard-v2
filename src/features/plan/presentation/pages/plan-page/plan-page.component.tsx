@@ -11,7 +11,6 @@ import { UserRole } from '../../../../../core/entities/user.entity';
 import CustomTabPanel from '../../../../../core/components/custom-tab-panel/costum-tab-panel.component';
 import UserDropdown from '../../../../../core/components/user-dropdown/user-dropdown';
 import MonthYearPicker from '../../../../../core/components/month-year-picker/month-year-picker.component';
-import CircularProgressLabel from '../../components/circular-progress-label/circular-progress-label.component';
 import CompoundBox, { RenderDirection } from '../../../../../core/components/compound-box/compound-box.component';
 import ReportPanel from '../../../../../core/components/report-panel/report-panel.component';
 import PlanPanel from '../../components/plan-panel/plan-panel.component';
@@ -24,6 +23,7 @@ import ReportService from '../../../data/services/report.service';
 import StatisticsService from '../../../data/services/statics.service';
 import UserTrackingService from '../../../data/services/user-tracking.service';
 import PlanModel from '../../../domain/models/plan.model';
+import CircularProgressLabel from '../../../../../core/components/circular-progress-label/circular-progress-label.component';
 
 interface PlanPageProps {
     currentUser: UserModel;
@@ -52,8 +52,8 @@ interface PlanPageState {
     visitDetails: VisitModel[];
     trackings: UserTrackingModel[];
     selectedVisitTaskDate?: Date;
-    visitsCoordinates: { point: number[], name: string, time: string }[];
-    tasksCoordinates: { point: number[], name: string }[];
+    visitsCoordinates: { point: number[], fullName: string, createdAt: string }[];
+    tasksCoordinates: { point: number[], fullName: string }[];
     delegatePlanDeTournee: number;
     kamPlanDeTournee: number;
     delegateCouverturePortfeuille: number;
@@ -115,10 +115,11 @@ class PlanPage extends Component<PlanPageProps, PlanPageState> {
     reportService = ReportService.getInstance();
     userTrackingService = UserTrackingService.getInstance();
 
-    handleDisplayReport = async (clientId: string, date: Date, visit: VisitModel) => {
-        // this.setState({ loadingReport: true });
-        // let report = await this.reportService.getReportOfClient(clientId, date);
-        // this.setState({ loadingReport: false, delegateReport: report, delegateVisit: visit });
+    handleDisplayReport = async (visit: VisitModel,) => {
+        this.setState({ loadingReport: true });
+        let report = await this.reportService.getReport(visit.reportId!);
+        visit.report = report;
+        this.setState({ loadingReport: false, delegateReport: report, delegateVisit: visit });
     }
 
     handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -160,25 +161,26 @@ class PlanPage extends Component<PlanPageProps, PlanPageState> {
     }
 
     handleSelectKam = async (kam?: UserModel) => {
-        // this.setState({ loadingVisitTasksData: true, selectedVisitTaskDate: undefined, visitTaskDetails: [], });
-        // var visitTasks = await this.visitTaskService.getAllVisitsTasks(this.state.selectedDate, kam!.id!);
-        // this.setState({ selectedKam: kam, kamVisitTasks: visitTasks, loadingVisitTasksData: false });
-        // var planDeTournee = await this.statisticsService.getPlanDeTournee(this.state.selectedDate, kam!.id!);
-        // var couverturePortfeuille = await this.statisticsService.getCouverturePortfeuille(this.state.selectedDate, kam!.id!);
-        // var moyenneVisitesParJour = await this.statisticsService.getMoyenneVisitesParJour(this.state.selectedDate, kam!.id!);
-        // var objectifChiffreDaffaire = await this.statisticsService.getObjectifChiffreDaffaire(this.state.selectedDate, kam!.id!);
-        // var objectifVisites = await this.statisticsService.getObjectifVisites(this.state.selectedDate, kam!.id!);
-        // var successRate = await this.statisticsService.getDelegateSuccessRateMonth(this.state.selectedDate, kam!.id!);
+        this.setState({ loadingVisitTasksData: true, selectedVisitTaskDate: undefined, visitDetails: [], });
+        var plans = await this.visitService.getPlans(this.state.selectedDate, kam!._id!);
+        this.setState({ selectedKam: kam, kamPlans: plans, });
+        var planDeTournee = await this.statisticsService.getPlandetournee(this.state.selectedDate, kam!._id!);
+        var moyenneVisitesParJour = await this.statisticsService.getMoyenneVisitesParJour(this.state.selectedDate, kam!._id!);
+        var successRate = await this.statisticsService.getTauxdereussite(this.state.selectedDate, kam!._id!);
+        var couverturePortfeuille = await this.statisticsService.getCouverturePortefeuilleClient(this.state.selectedDate, kam!._id!);
+        var objectifChiffreDaffaire = await this.statisticsService.getObjectifChiffreDaffaire(this.state.selectedDate, kam!._id!);
+        var objectifVisites = await this.statisticsService.getObjectifvisites(this.state.selectedDate, kam!._id!);
 
-        // this.setState({
-        //     selectedDelegate: kam,
-        //     kamPlanDeTournee: planDeTournee,
-        //     kamCouverturePortfeuille: couverturePortfeuille,
-        //     kamMoyenneVisitesParJour: moyenneVisitesParJour,
-        //     kamObjectifChiffreDaffaire: objectifChiffreDaffaire,
-        //     kamObjectifVisites: objectifVisites,
-        //     kamSuccessRate: successRate,
-        // });
+        this.setState({
+            selectedDelegate: kam,
+            kamPlanDeTournee: planDeTournee,
+            kamCouverturePortfeuille: couverturePortfeuille,
+            kamMoyenneVisitesParJour: moyenneVisitesParJour,
+            kamObjectifChiffreDaffaire: objectifChiffreDaffaire,
+            kamObjectifVisites: objectifVisites,
+            kamSuccessRate: successRate,
+            loadingVisitTasksData: false
+        });
     }
 
     handleOnPickDate = async (date: Date) => {
@@ -188,7 +190,7 @@ class PlanPage extends Component<PlanPageProps, PlanPageState> {
             this.setState({
                 selectedDate: date,
                 delegatePlans: plans,
-               
+
             });
             var planDeTournee = await this.statisticsService.getPlandetournee(date, this.state.selectedDelegate!._id!);
             var moyenneVisitesParJour = await this.statisticsService.getMoyenneVisitesParJour(date, this.state.selectedDelegate!._id!);
@@ -196,7 +198,7 @@ class PlanPage extends Component<PlanPageProps, PlanPageState> {
             var couverturePortfeuille = await this.statisticsService.getCouverturePortefeuilleClient(date, this.state.selectedDelegate!._id!);
             var objectifChiffreDaffaire = await this.statisticsService.getObjectifChiffreDaffaire(date, this.state.selectedDelegate!._id!);
             var objectifVisites = await this.statisticsService.getObjectifvisites(date, this.state.selectedDelegate!._id!);
-           
+
             this.setState({
                 loadingVisitTasksData: false,
                 selectedDate: date,
@@ -208,32 +210,32 @@ class PlanPage extends Component<PlanPageProps, PlanPageState> {
                 delegateObjectifVisites: objectifVisites,
             });
         }
-        // if (this.state.selectedKam) {
-        //     this.setState({ loadingVisitTasksData: true, selectedVisitTaskDate: undefined, visitTaskDetails: [], });
-        //     var visitTasks = await this.visitTaskService.getAllVisitsTasks(date, this.state.selectedKam!.id!);
-        //     var planDeTournee = await this.statisticsService.getPlanDeTournee(date, this.state.selectedKam!.id!);
-        //     var couverturePortfeuille = await this.statisticsService.getCouverturePortfeuille(date, this.state.selectedKam!.id!);
-        //     var moyenneVisitesParJour = await this.statisticsService.getMoyenneVisitesParJour(date, this.state.selectedKam!.id!);
-        //     var objectifChiffreDaffaire = await this.statisticsService.getObjectifChiffreDaffaire(date, this.state.selectedKam!.id!);
-        //     var objectifVisites = await this.statisticsService.getObjectifVisites(date, this.state.selectedKam!.id!);
-        //     var successRate = await this.statisticsService.getDelegateSuccessRateMonth(date, this.state.selectedKam!.id!);
-        //     this.setState({ selectedDate: date, kamVisitTasks: visitTasks, loadingVisitTasksData: false, });
-        //     this.setState({
-        //         selectedDate: date,
-        //         kamPlanDeTournee: planDeTournee,
-        //         kamCouverturePortfeuille: couverturePortfeuille,
-        //         kamMoyenneVisitesParJour: moyenneVisitesParJour,
-        //         kamObjectifChiffreDaffaire: objectifChiffreDaffaire,
-        //         kamObjectifVisites: objectifVisites,
-        //         kamSuccessRate: successRate,
-        //     });
-        // }
+        if (this.state.selectedKam) {
+            this.setState({ loadingVisitTasksData: true, selectedVisitTaskDate: undefined, visitDetails: [], });
+            var plans = await this.visitService.getPlans(date, this.state.selectedKam!._id!);
+            var planDeTournee = await this.statisticsService.getPlandetournee(date, this.state.selectedKam!._id!);
+            var couverturePortfeuille = await this.statisticsService.getCouverturePortefeuilleClient(date, this.state.selectedKam!._id!);
+            var moyenneVisitesParJour = await this.statisticsService.getMoyenneVisitesParJour(date, this.state.selectedKam!._id!);
+            var objectifChiffreDaffaire = await this.statisticsService.getObjectifChiffreDaffaire(date, this.state.selectedKam!._id!);
+            var objectifVisites = await this.statisticsService.getObjectifvisites(date, this.state.selectedKam!._id!);
+            var successRate = await this.statisticsService.getTauxdereussite(date, this.state.selectedKam!._id!);
+            this.setState({ selectedDate: date, kamPlans: plans, });
+            this.setState({
+                selectedDate: date,
+                kamPlanDeTournee: planDeTournee,
+                kamCouverturePortfeuille: couverturePortfeuille,
+                kamMoyenneVisitesParJour: moyenneVisitesParJour,
+                kamObjectifChiffreDaffaire: objectifChiffreDaffaire,
+                kamObjectifVisites: objectifVisites,
+                kamSuccessRate: successRate,
+                loadingVisitTasksData: false,
+            });
+        }
     }
 
     loadPlanPageData = async () => {
-
         if (this.props.currentUser.role === UserRole.supervisor) {
-            var delegates = await this.userService.getUsers([UserRole.delegate], this.props.currentUser._id);
+            var delegates = await this.userService.getUsers();
             this.setState({ isLoading: false, delegates: delegates, });
         }
         else {
@@ -272,83 +274,37 @@ class PlanPage extends Component<PlanPageProps, PlanPageState> {
     }
 
     handleSelectVisitTaskDate = async (date: Date,) => {
-        // this.setState({ loadingVisitTaskDetails: true, delegateReport: undefined });
-        // var tasks = await this.taskService.getAllTasksOfDelegate(date, this.state.selectedDelegate!.id!);
-        // var visits = await this.visitService.getAllVisitsOfDelegateDay(date, this.state.selectedDelegate!.id!);
-        // tasks.forEach((task) => {
-        //     if (visits.some(v => v.client?.id === task.client?.id)) {
-        //         task.isDone = true;
-        //         task.visit = visits.find((v) => v.client?.id === task.client?.id);
-        //     }
-        // });
-        // this.setState({ visitTaskDetails: tasks, loadingVisitTaskDetails: false });
+        this.setState({ loadingVisitTaskDetails: true, delegateReport: undefined });
+        var visits = await this.visitService.getVisits(date, this.state.selectedDelegate!._id!);
+        this.setState({ visitDetails: visits, loadingVisitTaskDetails: false });
     };
 
     compareDates = (a: VisitModel, b: VisitModel) => a!.visitDate!.getTime() - b!.visitDate!.getTime();
 
     handleDelegateDisplayMap = async (date: Date) => {
-        // this.setState({ loadingMap: true });
-        // var tasks = await this.taskService.getAllTasksOfDelegate(date, this.state.selectedDelegate!.id!);
-        // var visits = await this.visitService.getAllVisitsOfDelegateDay(date, this.state.selectedDelegate!.id!);
-
-        // visits.sort(this.compareDates);
-
-        // let visitsCoordinates: { point: number[], name: string, time: string }[] = visits.map((v) => {
-        //     return {
-        //         point: (v.visitLocation ?? ',').split(',').map((s) => parseFloat(s)),
-        //         name: v.client?.name ?? '',
-        //         time: formatTime(v.createdDate!),
-        //     };
-        // });
-
-        // let tasksCoordinates: { point: number[], name: string }[] = tasks.filter((t) => !visits.some(v => v.client?.id === t.client?.id)).map((t) => {
-        //     return {
-        //         point: (t.client?.location ?? ',').split(',').map((s) => parseFloat(s)),
-        //         name: t.client?.name ?? ''
-        //     };
-        // });
-        // var trackings = await this.userTrackingService.getUserTrackingByDate(date, this.state.selectedDelegate!.id!);
-
-        // this.setState({
-        //     loadingMap: false,
-        //     showMap: true,
-        //     trackings: trackings,
-        //     visitsCoordinates: visitsCoordinates,
-        //     tasksCoordinates: tasksCoordinates,
-        // });
+        this.setState({ loadingMap: true });
+        var userTrackings = await this.userTrackingService.getUserTracking(date, this.state.selectedDelegate!._id!);
+        this.setState({
+            loadingMap: false,
+            showMap: true,
+            trackings: userTrackings.userTrackings,
+            visitsCoordinates: userTrackings.visitsTracking,
+            tasksCoordinates: userTrackings.tasksTracking,
+        });
     };
 
 
 
     handleKamDisplayMap = async (date: Date) => {
-        // this.setState({ loadingMap: true });
-        // var tasks = await this.taskService.getAllTasksOfDelegate(date, this.state.selectedKam!.id!);
-        // var visits = await this.visitService.getAllVisitsOfDelegateDay(date, this.state.selectedKam!.id!);
-
-        // let visitsCoordinates: { point: number[], name: string, time: string }[] = visits.map((v) => {
-        //     return {
-        //         point: (v.visitLocation ?? ',').split(',').map((s) => parseFloat(s)),
-        //         name: v.client?.name ?? '',
-        //         time: formatTime(v.createdDate!),
-        //     };
-        // });
-
-        // let tasksCoordinates: { point: number[], name: string }[] = tasks.filter((t) => !visits.some(v => v.client?.id === t.client?.id)).map((t) => {
-        //     return {
-        //         point: (t.client?.location ?? ',').split(',').map((s) => parseFloat(s)),
-        //         name: t.client?.name ?? ''
-        //     };
-        // });
-
-        // var trackings = await this.userTrackingService.getUserTrackingByDate(date, this.state.selectedDelegate!.id!);
-
-        // this.setState({
-        //     loadingMap: false,
-        //     trackings: trackings,
-        //     showMap: true,
-        //     visitsCoordinates: visitsCoordinates,
-        //     tasksCoordinates: tasksCoordinates,
-        // });
+        this.setState({ loadingMap: true });
+        var userTrackings = await this.userTrackingService.getUserTracking(date, this.state.selectedKam!._id!);
+        this.setState({
+            loadingMap: false,
+            showMap: true,
+            trackings: userTrackings.userTrackings,
+            visitsCoordinates: userTrackings.visitsTracking,
+            tasksCoordinates: userTrackings.tasksTracking,
+        });
     };
 
     componentDidMount(): void {

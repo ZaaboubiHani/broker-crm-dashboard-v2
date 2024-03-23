@@ -25,13 +25,15 @@ interface UserDialogProps {
     onAdd: (user: UserModel) => void,
     onEdit: (user: UserModel) => void,
     creatorType: UserRole,
+    creatorId: string,
     wilayas: WilayaModel[],
+    supervisors: UserModel[],
     initUser?: UserModel,
 }
 
 
 const UserDialog: React.FC<UserDialogProps> = (props: UserDialogProps) => {
-    const { onClose, isOpen, onAdd, creatorType, onEdit, initUser, wilayas } = props;
+    const { onClose, isOpen, onAdd, creatorType, onEdit, initUser, wilayas, supervisors,creatorId } = props;
     const [stateTrigger, setStateTrigger] = React.useState<boolean>(false);
     const [showPassword, setShowPassword] = React.useState(false);
     const [userWilayas, setUserWilayas] = React.useState<string[]>([]);
@@ -120,7 +122,7 @@ const UserDialog: React.FC<UserDialogProps> = (props: UserDialogProps) => {
         }
     }
     const handleFullname = (event: React.ChangeEvent<HTMLInputElement>): void => {
-        user.fullName = event.target.value;
+        setUser(user.copyWith({ fullName: event.target.value }));
         if (initUser) {
             initUser.fullName = event.target.value;
             setStateTrigger(!stateTrigger);
@@ -175,7 +177,7 @@ const UserDialog: React.FC<UserDialogProps> = (props: UserDialogProps) => {
                                 sx={{
                                     width: '100%',
                                 }}
-                                error={user?.username === undefined || user?.username.length === 0}
+                                error={user?.username === undefined || user?.username.length === 0 || user?.username.includes(' ')}
                                 helperText='(obligatoire)'
                                 value={user?.username}
                                 onChange={handleUsername}
@@ -329,31 +331,55 @@ const UserDialog: React.FC<UserDialogProps> = (props: UserDialogProps) => {
                                 </Grid>
                             ) : null
                         }
-                        <Grid item xs={4}>
-                            <FormControl sx={{
-                                flex: '1',
-                                width: '100%',
-                                opacity: creatorType === UserRole.supervisor || user.role === UserRole.kam || initUser?.role === UserRole.kam || initUser?.role === UserRole.delegate ? '1' : '0',
-                                display: creatorType === UserRole.supervisor || user.role === UserRole.kam || initUser?.role === UserRole.kam || initUser?.role === UserRole.delegate ? 'block' : 'none',
-                                transition: 'all 300ms ease'
-                            }}>
-                                <InputLabel>Wilayat</InputLabel>
-                                <Select
-                                    sx={{ width: '100%', }}
-                                    multiple
-                                    value={userWilayas}
-                                    onChange={handleWilayaChange}
-                                    renderValue={(selected) => selected.join(', ')}
-                                >
-                                    {wilayas.map((wilaya) => (
-                                        <MenuItem key={wilaya._id} value={wilaya.name}>
-                                            <Checkbox checked={userWilayas.indexOf(wilaya.name ?? '') > -1} />
-                                            <ListItemText primary={wilaya.name} />
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Grid>
+                        {
+                            creatorType === UserRole.supervisor || user.role === UserRole.kam || initUser?.role === UserRole.kam || initUser?.role === UserRole.delegate ? (<Grid item xs={4}>
+                                <FormControl sx={{
+                                    flex: '1',
+                                    width: '100%',
+                                    opacity: creatorType === UserRole.supervisor || user.role === UserRole.kam || initUser?.role === UserRole.kam || initUser?.role === UserRole.delegate ? '1' : '0',
+                                    display: creatorType === UserRole.supervisor || user.role === UserRole.kam || initUser?.role === UserRole.kam || initUser?.role === UserRole.delegate ? 'block' : 'none',
+                                    transition: 'all 300ms ease'
+                                }}>
+                                    <InputLabel>Wilayat</InputLabel>
+                                    <Select
+                                        sx={{ width: '100%', }}
+                                        multiple
+                                        value={userWilayas}
+                                        onChange={handleWilayaChange}
+                                        renderValue={(selected) => selected.join(', ')}
+                                    >
+                                        {wilayas.map((wilaya) => (
+                                            <MenuItem key={wilaya._id} value={wilaya.name}>
+                                                <Checkbox checked={userWilayas.indexOf(wilaya.name ?? '') > -1} />
+                                                <ListItemText primary={wilaya.name} />
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>) : null
+                        }
+                        {
+                            creatorType === UserRole.supervisor && initUser ? (<Grid item xs={4}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Superviseur</InputLabel>
+                                    <Select
+                                    defaultValue={creatorId}
+                                    onChange={(event) => {
+                                        user.createdBy = event.target.value.toString();
+                                        if (initUser) {
+                                            initUser.createdBy = event.target.value.toString();
+                                            setStateTrigger(!stateTrigger);
+                                        }
+                                    }}>
+                                        {supervisors.map((supervisor) => (
+                                            <MenuItem key={supervisor._id} value={supervisor._id}>
+                                                <ListItemText primary={supervisor.fullName} />
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>) : null
+                        }
 
                     </Grid>
                 </Box>

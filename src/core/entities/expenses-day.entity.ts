@@ -1,8 +1,7 @@
-import UserEntity from "./user.entity";
+import FileEntity from "./file.entity";
 
 export default class ExpensesDayEntity {
     _id?: string;
-    user?: UserEntity;
     totalVisitsDoctor?: number;
     totalVisitsPharmacy?: number;
     totalVisitsWholesaler?: number;
@@ -11,11 +10,13 @@ export default class ExpensesDayEntity {
     nightsTotal?: number;
     indemnityNights?: number;
     otherExpenses?: number;
+    totalExpense?: number;
     startWilaya?: string;
     endWilaya?: string;
     startCity?: string;
     endCity?: string;
     date?: Date;
+    proofs?: FileEntity[];
 
     constructor(data?: Partial<ExpensesDayEntity>) {
         if (data) {

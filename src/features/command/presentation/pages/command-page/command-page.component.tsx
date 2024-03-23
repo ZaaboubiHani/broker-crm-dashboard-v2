@@ -15,9 +15,10 @@ import CustomTabPanel from '../../../../../core/components/custom-tab-panel/cost
 import UserDropdown from '../../../../../core/components/user-dropdown/user-dropdown';
 import MonthYearPicker from '../../../../../core/components/month-year-picker/month-year-picker.component';
 import CompoundBox, { RenderDirection } from '../../../../../core/components/compound-box/compound-box.component';
-import CommandDelegateTable from '../../../../../core/components/command-delegate-table/command-delegate-table.component';
 import CommandPanel from '../../../../../core/components/comand-panel/command-panel.component';
-import CommandCamTable from '../../../../../core/components/command-cam-table/command-cam-table.component';
+import ClientService from '../../../data/services/client.service';
+import CommandDelegateTable from '../../components/command-delegate-table/command-delegate-table.component';
+import CommandCamTable from '../../components/command-cam-table/command-cam-table.component';
 
 interface CommandPageProps {
     currentUser: UserModel;
@@ -92,6 +93,7 @@ class CommandPage extends Component<CommandPageProps, CommandPageState> {
 
     userService = UserService.getInstance();
     commandService = CommandService.getInstance();
+    clientService = ClientService.getInstance();
 
 
     handleCloseDialog = (event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -109,59 +111,45 @@ class CommandPage extends Component<CommandPageProps, CommandPageState> {
     }
 
     handleSelectKam = async (kam?: UserModel) => {
-        // this.setState({ loadingKamCommandsData: true, kamCommandData: undefined, kamPage: 1 });
-        // var { commands: commands, total: total } = await this.commandService.getAllCommandsOfDelegate(1, this.state.sizeKam, this.state.selectedDateKam, kam!.id!);
-        // this.setState({ selectedKam: kam, kamCommands: commands, kamPage: 1, totalKam: total, loadingKamCommandsData: false, });
+        this.setState({ loadingKamCommandsData: true, kamCommandData: undefined, kamPage: 1 });
+        var { commands: commands, total: total } = await this.commandService.getCommands(this.state.selectedDateKam, 1, this.state.sizeKam, kam!._id!);
+        this.setState({ selectedKam: kam, kamCommands: commands, kamPage: 1, totalKam: total, loadingKamCommandsData: false, });
     }
 
     handleOnPickDateDelegate = async (date: Date) => {
-        // this.setState({ loadingDelegateCommandsData: true, delegateCommandData: undefined, delegatePage: 1 });
-        // var { commands: commands, total: total } = await this.commandService.getAllCommandsOfDelegate(1, this.state.sizeDelegate, date, this.state.selectedDelegate!.id!);
-        // this.setState({ selectedDateDelegate: date, delegateCommands: commands, delegatePage: 1, totalDelegate: total, loadingDelegateCommandsData: false, });
+        this.setState({ loadingDelegateCommandsData: true, delegateCommandData: undefined, delegatePage: 1 });
+        var { commands: commands, total: total } = await this.commandService.getCommands(date, 1, this.state.sizeDelegate, this.state.selectedDelegate!._id!);
+        this.setState({ selectedDateDelegate: date, delegateCommands: commands, delegatePage: 1, totalDelegate: total, loadingDelegateCommandsData: false, });
     }
 
     handleOnPickDateKam = async (date: Date) => {
-        // this.setState({ loadingKamCommandsData: true, kamCommandData: undefined, kamPage: 1 });
-        // var { commands: commands, total: total } = await this.commandService.getAllCommandsOfDelegate(1, this.state.sizeKam, date, this.state.selectedKam!.id!);
-        // this.setState({ selectedDateKam: date, kamCommands: commands, kamPage: 1, totalKam: total, loadingKamCommandsData: false, });
+        this.setState({ loadingKamCommandsData: true, kamCommandData: undefined, kamPage: 1 });
+        var { commands: commands, total: total } = await this.commandService.getCommands(date, 1, this.state.sizeKam, this.state.selectedKam!._id!);
+        this.setState({ selectedDateKam: date, kamCommands: commands, kamPage: 1, totalKam: total, loadingKamCommandsData: false, });
     }
 
     loadCommandPageData = async () => {
         if (this.props.currentUser.role === UserRole.supervisor) {
-            //TODO: get visits
+            let delegates = await this.userService.getUsers();
+            var suppliers = await this.clientService.getSuppliers();
+            this.setState({
+                delegates: delegates,
+                suppliers: suppliers,
+            });
         }
         else {
             let supervisors = await this.userService.getUsers([UserRole.supervisor]);
             let kams = await this.userService.getUsers([UserRole.kam]);
+            var suppliers = await this.clientService.getSuppliers();
             this.setState({
                 supervisors: supervisors,
                 kams: kams,
+                suppliers: suppliers,
             });
         }
         this.setState({
             isLoading: false,
         });
-        // var currentUser = await this.userService.getMe();
-        // if (currentUser != undefined) {
-        //     this.setState({ currentUser: currentUser });
-        // }
-
-        // if (currentUser.type === UserType.supervisor) {
-        //     var delegates = await this.userService.getUsersByCreator(currentUser.id!, UserType.delegate);
-
-        //     this.setState({ currentUser: currentUser, isLoading: false, delegates: delegates, });
-        // } else {
-        //     var supervisors = await this.userService.getUsersByCreator(currentUser.id!, UserType.supervisor);
-        //     var kams = await this.userService.getUsersByCreator(currentUser.id!, UserType.kam);
-        //     var suppliers = await this.supplierService.getAllSuppliers();
-        //     this.setState({
-        //         currentUser: currentUser,
-        //         isLoading: false,
-        //         supervisors: supervisors,
-        //         kams: kams,
-        //         suppliers: suppliers,
-        //     });
-        // }
     }
 
     handleDisplayDelegateCommand = async (command: CommandModel) => {
@@ -187,14 +175,14 @@ class CommandPage extends Component<CommandPageProps, CommandPageState> {
     }
 
     handleHonorKamCommand = async (command: CommandModel) => {
-        // if (command.isHonored) {
-        //     await this.commandService.honorCommand(command!.id!, command!.finalSupplier?.id);
-        //     this.setState({ showDialog: true, dialogMessage: 'Bon de commande honoré' });
-        // }
-        // else if (!command.isHonored) {
-        //     await this.commandService.dishonorCommand(command!.id!);
-        //     this.setState({ showDialog: true, dialogMessage: 'Bon de commande dishonoré' });
-        // }
+        if (command.isHonored) {
+            await this.commandService.honorCommand(command!._id!, command!.finalSupplier?._id);
+            this.setState({ showDialog: true, dialogMessage: 'Bon de commande honoré' });
+        }
+        else if (!command.isHonored) {
+            await this.commandService.dishonorCommand(command!._id!);
+            this.setState({ showDialog: true, dialogMessage: 'Bon de commande dishonoré' });
+        }
     }
 
     handleSelectSupervisor = async (supervisor?: UserModel) => {
@@ -210,18 +198,6 @@ class CommandPage extends Component<CommandPageProps, CommandPageState> {
             loadingDelegates: false,
             delegates: delegates,
         });
-        // this.setState({
-        //     delegateCommandData: undefined,
-        //     delegates: [],
-        //     delegateCommands: [],
-        //     loadingDelegates: true,
-        // });
-        // var delegates = await this.userService.getUsersByCreator(supervisor!.id!, UserType.delegate);
-
-        // this.setState({
-        //     delegates: delegates,
-        //     loadingDelegates: false,
-        // });
     }
 
     handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -230,70 +206,44 @@ class CommandPage extends Component<CommandPageProps, CommandPageState> {
 
 
     handleDelegatePageChange = async (page: number, size: number) => {
-        // if (this.state.selectedDelegate) {
-        //     this.setState({ loadingDelegateCommandsData: true, delegateCommandData: undefined, sizeDelegate: size });
-        //     var { commands: commands, total: total } = await this.commandService.getAllCommandsOfDelegate(page, size, this.state.selectedDateDelegate, this.state.selectedDelegate!.id!);
-        //     this.setState({
-        //         delegatePage: page,
-        //         delegateCommands: commands,
-        //         totalDelegate: total,
-        //         loadingDelegateCommandsData: false,
-        //         sizeDelegate: size,
-        //     });
-        // }
-        // this.setState({
-        //     delegatePage: page,
-        //     loadingDelegateCommandsData: false,
-        //     sizeDelegate: size,
-        // });
+        if (this.state.selectedDelegate) {
+            this.setState({
+                loadingDelegateCommandsData: true,
+                delegateCommandData: undefined,
+            });
+            var { commands: commands, total: total } = await this.commandService.getCommands(this.state.selectedDateDelegate, page, size, this.state.selectedDelegate!._id!);
+            this.setState({
+                delegateCommands: commands,
+                totalDelegate: total,
+                loadingDelegateCommandsData: false,
+            });
+        }
+        this.setState({
+            delegatePage: page,
+            loadingDelegateCommandsData: false,
+            sizeDelegate: size,
+        });
     }
 
     handleKamPageChange = async (page: number, size: number) => {
-        // if (this.state.selectedKam) {
-        //     this.setState({ loadingKamCommandsData: true, kamCommandData: undefined, sizeKam: size });
-        //     var { commands: commands, total: total } = await this.commandService.getAllCommandsOfDelegate(page, size, this.state.selectedDateKam, this.state.selectedKam!.id!);
-        //     this.setState({
-        //         kamPage: page,
-        //         kamCommands: commands,
-        //         totalKam: total,
-        //         loadingKamCommandsData: false,
-        //         sizeKam: size,
-        //     });
-        // }
-        // this.setState({
-        //     kamPage: page,
-        //     loadingKamCommandsData: false,
-        //     sizeKam: size,
-        // });
+        if (this.state.selectedKam) {
+            this.setState({ loadingKamCommandsData: true, kamCommandData: undefined, sizeKam: size });
+            var { commands: commands, total: total } = await this.commandService.getCommands(this.state.selectedDateKam, page, size, this.state.selectedKam!._id!);
+            this.setState({
+                kamPage: page,
+                kamCommands: commands,
+                totalKam: total,
+                loadingKamCommandsData: false,
+                sizeKam: size,
+            });
+        }
+        this.setState({
+            kamPage: page,
+            loadingKamCommandsData: false,
+            sizeKam: size,
+        });
     }
-
-
-    handleDelegateRowNumChange = async (size: number) => {
-        // this.setState({ loadingDelegateCommandsData: true, delegatePage: 1, sizeDelegate: size, delegateCommandData: undefined });
-        // var { commands: commands, total: total } = await this.commandService.getAllCommandsOfDelegate(1, size, this.state.selectedDateDelegate, this.state.selectedDelegate!.id!);
-
-        // this.setState({
-        //     delegatePage: 1,
-        //     sizeDelegate: size,
-        //     delegateCommands: commands,
-        //     totalDelegate: total,
-        //     loadingDelegateCommandsData: false,
-        // });
-    }
-
-    handleKamRowNumChange = async (size: number) => {
-        // this.setState({ loadingKamCommandsData: true, kamPage: 1, sizeKam: size, kamCommandData: undefined });
-        // var { commands: commands, total: total } = await this.commandService.getAllCommandsOfDelegate(1, size, this.state.selectedDateKam, this.state.selectedKam!.id!);
-
-        // this.setState({
-        //     kamPage: 1,
-        //     sizeKam: size,
-        //     kamCommands: commands,
-        //     totalKam: total,
-        //     loadingKamCommandsData: false,
-        // });
-    }
-
+   
     handleShowSuppliersDialog = async (index: number) => {
 
         this.setState({
@@ -305,14 +255,12 @@ class CommandPage extends Component<CommandPageProps, CommandPageState> {
 
     componentDidMount(): void {
         if (localStorage.getItem('isLogged') === 'true') {
-
             this.loadCommandPageData();
         }
     }
 
     render() {
         if (this.state.isLoading) {
-            this.loadCommandPageData();
             return (
                 <div style={{
                     width: '100%',
@@ -452,8 +400,7 @@ class CommandPage extends Component<CommandPageProps, CommandPageState> {
                             }} key={0}>
                                 <CompoundBox
                                     direction={RenderDirection.horizontal}
-                                    flexes={[70, 30]}
-                                >
+                                    flexes={[70, 30]}>
                                     <CommandCamTable
                                         id='command-cam-table'
                                         total={this.state.totalKam}

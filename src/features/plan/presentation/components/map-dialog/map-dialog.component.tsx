@@ -116,8 +116,8 @@ const TrackingList: React.FC<TrackingListProps> = ({ trackings }) => {
 interface MapDialogProps {
     isOpen: boolean,
     onClose: (value: string) => void,
-    visitsCoordinates: { point: number[], name: string, time: string }[],
-    tasksCoordinates: { point: number[], name: string }[],
+    visitsCoordinates: { point: number[], fullName: string, createdAt: string }[],
+    tasksCoordinates: { point: number[], fullName: string }[],
     trackings: UserTrackingModel[],
 }
 
@@ -220,10 +220,10 @@ const MapDialog: React.FC<MapDialogProps> = ({ isOpen, onClose, visitsCoordinate
                             radius={5}>
                             <Popup>
                                 <div>
-                                    {c.name}
+                                    {c.fullName}
                                 </div>
                                 <div>
-                                    {c.time}
+                                    {c.createdAt}
                                 </div>
                             </Popup>
                         </CircleMarker>
@@ -243,7 +243,7 @@ const MapDialog: React.FC<MapDialogProps> = ({ isOpen, onClose, visitsCoordinate
                     tasksCoordinates.map((c) => {
                         return isNaN(c.point[0]) ? null : (
                             <CircleMarker center={ll.latLng(c.point[0], c.point[1])} pathOptions={taskColorOptions} radius={5}>
-                                <Popup>{c.name}</Popup>
+                                <Popup>{c.fullName}</Popup>
                             </CircleMarker>
                         );
                     }

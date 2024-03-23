@@ -13,10 +13,7 @@ export default class CompanyService extends CompanyRespository {
     }
 
     static getInstance(): CompanyService {
-        if (!CompanyService._instance) {
             CompanyService._instance = new CompanyService();
-           
-        }
         return CompanyService._instance;
     }
     

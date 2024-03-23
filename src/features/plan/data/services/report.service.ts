@@ -11,10 +11,7 @@ export default class ReportService extends ReportRespository {
     }
 
     static getInstance(): ReportService {
-        if (!ReportService._instance) {
             ReportService._instance = new ReportService();
-
-        }
         return ReportService._instance;
     }
 

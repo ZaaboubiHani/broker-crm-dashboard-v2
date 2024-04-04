@@ -45,9 +45,9 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ data, isLoading }) => {
                             [...data.map((row, index) => {
                                 return {
                                     id: index,
-                                    date: row.date || new Date(),
-                                    startLocation: `${row.startCity ?? ''}, ${row.startWilaya ?? ''}`,
-                                    endLocation: `${row.endCity ?? ''}, ${row.endWilaya ?? ''}`,
+                                    date: row.expenseDate ?? '____/__/__',
+                                    startLocation: `${row.startCommune ?? ''}, ${row.startWilaya ?? ''}`,
+                                    endLocation: `${row.endCommune ?? ''}, ${row.endWilaya ?? ''}`,
                                     totalVisitsDoctor: row.totalVisitsDoctor,
                                     totalVisitsPharmacy: row.totalVisitsPharmacy,
                                     kmTotal: row.kmTotal,

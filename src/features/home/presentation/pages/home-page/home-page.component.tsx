@@ -135,6 +135,9 @@ class HomePage extends Component<HomePageProps, HomePageState> {
         this.setState({
             selectedDate: date,
             selectedVisit: undefined,
+            showReportPanel:false,
+            selectedReport:undefined,
+            selectedCommand:undefined,
         });
         if (this.props.currentUser.role === UserRole.supervisor) {
             this.setState({ loadingVisitsData: true });

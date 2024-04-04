@@ -32,15 +32,19 @@ interface StatisticsPageState {
     visitTaskAreaChart: ApexOptions,
     delegateSuccessRateAreaChart: ApexOptions,
     visitGoalAreaChart: ApexOptions,
-    salesAreaChart: ApexOptions,
+    delegateSalesAreaChart: ApexOptions,
     kamSalesAreaChart: ApexOptions,
+    companySalesAreaChart: ApexOptions,
     kamChartPieOptions: ApexOptions,
     chartPieOptions: ApexOptions,
     kamSuccessRateAreaChart: ApexOptions,
+    companySuccessRateAreaChart: ApexOptions,
     kamVisitTaskAreaChart: ApexOptions,
     teamContributionPieOptions: ApexOptions,
     kamVisitGoalAreaChart: ApexOptions,
+    companyVisitTaskAreaChart: ApexOptions,
     delegatesContributionChartPie: ApexOptions,
+    companyContributionChartPie: ApexOptions,
     teamSalesAreaChart: ApexOptions,
     teamSuccessRateAreaChart: ApexOptions,
     teamVisitGoalAreaChart: ApexOptions,
@@ -155,12 +159,58 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
                     },
                 }
             },
+            companyContributionChartPie: {
+                chart: {
+                    type: 'pie',
+                },
+                fill: {
+                    type: 'gradient',
+                },
+                series: [],
+                labels: [],
+                title: {
+                    text: 'Diagramme de contribution au chiffre d\'affaire annuel de l\'entreprise',
+                    align: 'left',
+                    margin: 10,
+                    offsetX: 0,
+                    offsetY: 0,
+                    floating: false,
+                    style: {
+                        fontSize: '20px',
+                        fontWeight: 'bold',
+                        color: '#263238'
+                    },
+                }
+            },
             kamSuccessRateAreaChart: {
                 chart: {
                     type: 'area',
                 },
                 title: {
                     text: 'Graphe des taux de réussite annuel',
+                    align: 'left',
+                    margin: 10,
+                    offsetX: 0,
+                    offsetY: 0,
+                    floating: false,
+                    style: {
+                        fontSize: '20px',
+                        fontWeight: 'bold',
+                        color: '#263238'
+                    },
+                },
+                colors: ['#CC38E0', '#2AEB80'],
+                series: [],
+                xaxis: {
+                    categories: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+                }
+            },
+            companySuccessRateAreaChart: {
+                chart: {
+                    type: 'area',
+                },
+                title: {
+                    text: 'Graphe des taux de réussite annuel de l\'entreprise',
                     align: 'left',
                     margin: 10,
                     offsetX: 0,
@@ -247,7 +297,30 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
                     categories: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
                 }
             },
-            salesAreaChart: {
+            companySalesAreaChart: {
+                chart: {
+                    type: 'area',
+                },
+                title: {
+                    text: 'Graphe du chiffre d\'affaires de l\'entreprise',
+                    align: 'left',
+                    margin: 10,
+                    offsetX: 0,
+                    offsetY: 0,
+                    floating: false,
+                    style: {
+                        fontSize: '20px',
+                        fontWeight: 'bold',
+                        color: '#263238'
+                    },
+                },
+                colors: ['#CC38E0'],
+                series: [],
+                xaxis: {
+                    categories: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+                }
+            },
+            delegateSalesAreaChart: {
                 chart: {
                     type: 'area',
                 },
@@ -276,6 +349,29 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
                 },
                 title: {
                     text: 'Graphe du plan de tournee annuel',
+                    align: 'left',
+                    margin: 10,
+                    offsetX: 0,
+                    offsetY: 0,
+                    floating: false,
+                    style: {
+                        fontSize: '20px',
+                        fontWeight: 'bold',
+                        color: '#263238'
+                    },
+                },
+                colors: ['#38EB5D', '#EA572C'],
+                series: [],
+                xaxis: {
+                    categories: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+                }
+            },
+            companyVisitTaskAreaChart: {
+                chart: {
+                    type: 'area',
+                },
+                title: {
+                    text: 'Graphe du plan de tournee annuel de l\'entreprise',
                     align: 'left',
                     margin: 10,
                     offsetX: 0,
@@ -496,161 +592,19 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
         this.setState({
             selectedKam: kam,
             loadingStatisticsData: false,
-            visitGoalAreaChart: this.state.visitGoalAreaChart,
-            visitTaskAreaChart: this.state.visitTaskAreaChart,
-            salesAreaChart: this.state.salesAreaChart,
-            chartPieOptions: this.state.chartPieOptions,
-            teamContributionPieOptions: this.state.teamContributionPieOptions,
         });
     }
 
     handleSelectDelegate = async (delegate?: UserModel) => {
 
         this.setState({ loadingStatisticsData: true, });
-
-        // if (this.state.currentUser.type === UserType.supervisor) {
-
-        //     var visitStats = await this.statisticsService.getDelegateYearVisitStats(this.state.selectedDate, delegate!.id!);
-        //     var salesStats = await this.statisticsService.getDelegateYearSaleStats(this.state.selectedDate, delegate!.id!);
-        //     var contributionStats = await this.statisticsService.getDelegateContributionStats(this.state.selectedDate, delegate!.id!, this.state.currentUser.id!);
-        //     var teamVisitsData = await this.statisticsService.getTeamYearVisitStats(this.state.selectedDate, this.state.currentUser.id!);
-        //     var teamSalesData = await this.statisticsService.getTeamYearSaleStats(this.state.selectedDate, this.state.currentUser.id!);
-        //     var successRate = await this.statisticsService.getDelegateSuccessRateYear(delegate!.id!, this.state.selectedDate);
-
-        //     var teamSuccessRate = await this.statisticsService.getTeamSuccessRateYear(this.state.currentUser.id!, this.state.selectedDate);
-        //     var delegatesContributions = await this.statisticsService.getDelegatesContributionsOfSupervisor(this.state.currentUser.id!, this.state.selectedDate,);
-        //     var teamContribution = await this.statisticsService.getTeamContributionsOfSupervisor(this.state.currentUser.id!, this.state.selectedDate,);
-
-        //     this.state.chartPieOptions.series = [contributionStats.delegateSales, contributionStats.teamSales - contributionStats.delegateSales];
-        //     this.state.chartPieOptions.labels?.splice(0, this.state.chartPieOptions.labels?.length);
-        //     this.state.chartPieOptions.labels?.push(delegate!.username!);
-        //     this.state.chartPieOptions.labels?.push('reste d\'equipe');
-
-        //     this.state.teamContributionPieOptions.series = [teamContribution.teamSales, teamContribution.companySales - teamContribution.teamSales];
-        //     this.state.teamContributionPieOptions.labels?.splice(0, this.state.teamContributionPieOptions.labels?.length);
-        //     this.state.teamContributionPieOptions.labels?.push('equipe');
-        //     this.state.teamContributionPieOptions.labels?.push('entreprise');
-
-        //     this.state.delegatesContributionChartPie.series = [...delegatesContributions.map(e => e.ChiffreDaffaire)];
-        //     this.state.delegatesContributionChartPie.labels?.splice(0, this.state.chartPieOptions.labels?.length);
-        //     delegatesContributions.forEach(e => {
-        //         this.state.delegatesContributionChartPie.labels?.push(e.delegateName);
-        //     });
-
-        //     this.state.delegateSuccessRateAreaChart.series = [
-        //         {
-        //             name: 'Total de bon de commandes honores',
-        //             data: successRate.map(e => e.honoredCommands),
-        //         },
-        //         {
-        //             name: 'Total visites',
-        //             data: successRate.map(e => e.totalVisits),
-        //         },
-        //     ];
-
-        //     this.state.teamSuccessRateAreaChart.series = [
-        //         {
-        //             name: 'Total de bon de commandes honores',
-        //             data: teamSuccessRate.map(e => e.honoredCommands),
-        //         },
-        //         {
-        //             name: 'Total visites',
-        //             data: teamSuccessRate.map(e => e.totalVisits),
-        //         },
-        //     ];
-
-        //     this.state.teamSalesAreaChart.series = [
-        //         {
-        //             name: 'Total des ventes',
-        //             data: teamSalesData.map(e => e.totalSales),
-        //         },
-        //         {
-        //             name: 'Objectifs chiffre d\'affaire',
-        //             data: teamSalesData.map(e => e.salesGoal),
-        //         },
-        //     ];
-
-        //     this.state.teamVisitGoalAreaChart.series = [
-        //         {
-        //             name: 'Total visites',
-        //             data: teamVisitsData.map(e => e.numberOfVisits),
-        //         },
-        //         {
-        //             name: 'Objectifs de visites',
-        //             data: teamVisitsData.map(e => e.visitsGoal),
-        //         },
-        //     ];
-
-        //     this.state.teamVisitTaskAreaChart.series = [
-        //         {
-        //             name: 'Visites réalisées',
-        //             data: teamVisitsData.map(e => e.numberOfVisits),
-        //         },
-        //         {
-        //             name: 'Visites programmées',
-        //             data: teamVisitsData.map(e => e.numberOfTasks),
-        //         },
-        //     ];
-
-        //     this.state.salesAreaChart.series = [
-        //         {
-        //             name: 'Total chiffre d\'affaire',
-        //             data: salesStats.map(e => e.totalSales),
-        //         },
-        //         {
-        //             name: 'Objectifs chiffre d\'affaire',
-        //             data: salesStats.map(e => e.salesGoal),
-        //         },
-        //     ];
-
-        //     this.state.visitGoalAreaChart.series = [
-        //         {
-        //             name: 'Visites réalisées',
-        //             data: visitStats.map(e => e.numberOfVisits),
-        //         },
-        //         {
-        //             name: 'Objectifs de visites',
-        //             data: visitStats.map(e => e.visitsGoal),
-        //         },
-        //     ];
-
-        //     this.state.visitTaskAreaChart.series = [
-        //         {
-        //             name: 'Visites réalisées',
-        //             data: visitStats.map(e => e.numberOfVisits),
-        //         },
-        //         {
-        //             name: 'visites programmées',
-        //             data: visitStats.map(e => e.numberOfTasks),
-        //         },
-        //     ];
-
-        //     this.setState({
-        //         selectedDelegate: delegate,
-        //         loadingStatisticsData: false,
-        //         visitGoalAreaChart: this.state.visitGoalAreaChart,
-        //         visitTaskAreaChart: this.state.visitTaskAreaChart,
-        //         salesAreaChart: this.state.salesAreaChart,
-        //         chartPieOptions: this.state.chartPieOptions,
-        //         teamContributionPieOptions: this.state.teamContributionPieOptions,
-        //     });
-        // } else {
-
-        //     var visitStats = await this.statisticsService.getDelegateYearVisitStats(this.state.selectedDate, delegate!.id!);
-        //     var salesStats = await this.statisticsService.getDelegateYearSaleStats(this.state.selectedDate, delegate!.id!);
         var userStats = await this.statisticsService.getUserStats(delegate!._id!, this.state.selectedDate);
         var contributionStats = await this.statisticsService.getContributionUser(delegate!._id!, this.state.selectedDate);
-        //     var delegatesContributions = await this.statisticsService.getDelegatesContributionsOfSupervisor(this.state.selectedSupervisor!.id!, this.state.selectedDate,);
 
         this.state.chartPieOptions.series = [contributionStats.userSales, contributionStats.teamSales - contributionStats.userSales];
-        // this.state.delegatesContributionChartPie.series = [...delegatesContributions.map(e => e.ChiffreDaffaire)];
-        //     delegatesContributions.forEach(e => {
-        //         this.state.delegatesContributionChartPie.labels?.push(e.delegateName);
-        //     });
         this.state.chartPieOptions.labels?.splice(0, this.state.chartPieOptions.labels?.length);
         this.state.chartPieOptions.labels?.push(delegate!.fullName!);
         this.state.chartPieOptions.labels?.push('reste d\'equipe');
-        // this.state.delegatesContributionChartPie.labels?.splice(0, this.state.chartPieOptions.labels?.length);
 
         this.state.delegateSuccessRateAreaChart.series = [
             {
@@ -663,7 +617,7 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
             },
         ];
 
-        this.state.salesAreaChart.series = [
+        this.state.delegateSalesAreaChart.series = [
             {
                 name: 'Total chiffre d\'affaire',
                 data: userStats.map(e => e.totalSales),
@@ -701,217 +655,282 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
         this.setState({
             selectedDelegate: delegate,
             loadingStatisticsData: false,
-            visitGoalAreaChart: this.state.visitGoalAreaChart,
-            visitTaskAreaChart: this.state.visitTaskAreaChart,
-            salesAreaChart: this.state.salesAreaChart,
-            chartPieOptions: this.state.chartPieOptions,
-            teamContributionPieOptions: this.state.teamContributionPieOptions,
         });
     }
 
     handleOnPickDate = async (date: Date) => {
 
-        // this.setState({ loadingStatisticsData: true, });
-        // if (this.state.currentUser.type === UserType.supervisor) {
-        //     if (this.state.selectedDelegate) {
-        //         var visitStats = await this.statisticsService.getDelegateYearVisitStats(date, this.state.selectedDelegate!.id!);
-        //         var salesStats = await this.statisticsService.getDelegateYearSaleStats(date, this.state.selectedDelegate!.id!);
-        //         var contributionStats = await this.statisticsService.getDelegateContributionStats(date, this.state.selectedDelegate!.id!, this.state.currentUser.id!);
-        //         var teamVisitsData = await this.statisticsService.getTeamYearVisitStats(date, this.state.currentUser.id!);
-        //         var teamSalesData = await this.statisticsService.getTeamYearSaleStats(date, this.state.currentUser.id!);
-        //         var successRate = await this.statisticsService.getDelegateSuccessRateYear(this.state.selectedDelegate!.id!, date);
+        this.setState({ loadingStatisticsData: true, });
+       
+        if (this.state.selectedDelegate) {
+            var userStats = await this.statisticsService.getUserStats(this.state.selectedDelegate!._id!, date);
+            var contributionStats = await this.statisticsService.getContributionUser(this.state.selectedDelegate!._id!, date);
 
-        //         var teamSuccessRate = await this.statisticsService.getTeamSuccessRateYear(this.state.currentUser.id!, date);
-        //         var delegatesContributions = await this.statisticsService.getDelegatesContributionsOfSupervisor(this.state.currentUser.id!, date,);
-        //         var teamContribution = await this.statisticsService.getTeamContributionsOfSupervisor(this.state.currentUser.id!, date,);
+            this.state.chartPieOptions.series = [contributionStats.userSales, contributionStats.teamSales - contributionStats.userSales];
+            this.state.chartPieOptions.labels?.splice(0, this.state.chartPieOptions.labels?.length);
+            this.state.chartPieOptions.labels?.push(this.state.selectedDelegate!.fullName!);
+            this.state.chartPieOptions.labels?.push('reste d\'equipe');
 
-        //         this.state.chartPieOptions.series = [contributionStats.delegateSales, contributionStats.teamSales - contributionStats.delegateSales];
-        //         this.state.chartPieOptions.labels?.splice(0, this.state.chartPieOptions.labels?.length);
-        //         this.state.chartPieOptions.labels?.push(this.state.selectedDelegate!.username!);
-        //         this.state.chartPieOptions.labels?.push('reste d\'equipe');
+            this.state.delegateSuccessRateAreaChart.series = [
+                {
+                    name: 'Total de bon de commandes honores',
+                    data: userStats.map(e => e.honoredCommands),
+                },
+                {
+                    name: 'Total visites',
+                    data: userStats.map(e => e.doneVisits),
+                },
+            ];
 
-        //         this.state.teamContributionPieOptions.series = [teamContribution.teamSales, teamContribution.companySales - teamContribution.teamSales];
-        //         this.state.teamContributionPieOptions.labels?.splice(0, this.state.teamContributionPieOptions.labels?.length);
-        //         this.state.teamContributionPieOptions.labels?.push('equipe');
-        //         this.state.teamContributionPieOptions.labels?.push('entreprise');
+            this.state.delegateSalesAreaChart.series = [
+                {
+                    name: 'Total chiffre d\'affaire',
+                    data: userStats.map(e => e.totalSales),
+                },
+                {
+                    name: 'Objectifs chiffre d\'affaire',
+                    data: userStats.map(e => e.goalSales),
+                },
+            ];
 
-        //         this.state.delegatesContributionChartPie.series = [...delegatesContributions.map(e => e.ChiffreDaffaire)];
-        //         this.state.delegatesContributionChartPie.labels?.splice(0, this.state.chartPieOptions.labels?.length);
-        //         delegatesContributions.forEach(e => {
-        //             this.state.delegatesContributionChartPie.labels?.push(e.delegateName);
-        //         });
+            this.state.visitGoalAreaChart.series = [
+                {
+                    name: 'Visites réalisées',
+                    data: userStats.map(e => e.doneVisits),
+                },
+                {
+                    name: 'Objectifs de visites',
+                    data: userStats.map(e => e.goalVisits),
+                },
+            ];
 
-        //         this.state.delegateSuccessRateAreaChart.series = [
-        //             {
-        //                 name: 'Total de bon de commandes honores',
-        //                 data: successRate.map(e => e.honoredCommands),
-        //             },
-        //             {
-        //                 name: 'Total visites',
-        //                 data: successRate.map(e => e.totalVisits),
-        //             },
-        //         ];
+            this.state.visitTaskAreaChart.series = [
+                {
+                    name: 'Visites réalisées',
+                    data: userStats.map(e => e.doneVisits),
+                },
+                {
+                    name: 'visites programmées',
+                    data: userStats.map(e => e.allVisits),
+                },
+            ];
+        }
+        if (this.state.selectedKam) {
+            var userStats = await this.statisticsService.getUserStats(this.state.selectedKam!._id!, date);
+            var contributionStats = await this.statisticsService.getContributionUser(this.state.selectedKam!._id!, date);
 
-        //         this.state.teamSuccessRateAreaChart.series = [
-        //             {
-        //                 name: 'Total de bon de commandes honores',
-        //                 data: teamSuccessRate.map(e => e.honoredCommands),
-        //             },
-        //             {
-        //                 name: 'Total visites',
-        //                 data: teamSuccessRate.map(e => e.totalVisits),
-        //             },
-        //         ];
+            this.state.kamChartPieOptions.series = [contributionStats.userSales, contributionStats.teamSales - contributionStats.userSales];
+            this.state.kamChartPieOptions.labels?.splice(0, this.state.kamChartPieOptions.labels?.length);
+            this.state.kamChartPieOptions.labels?.push(this.state.selectedKam!.username!);
+            this.state.kamChartPieOptions.labels?.push('reste d\'equipe');
 
-        //         this.state.teamSalesAreaChart.series = [
-        //             {
-        //                 name: 'Total des ventes',
-        //                 data: teamSalesData.map(e => e.totalSales),
-        //             },
-        //             {
-        //                 name: 'Objectifs chiffre d\'affaire',
-        //                 data: teamSalesData.map(e => e.salesGoal),
-        //             },
-        //         ];
+            this.state.kamSuccessRateAreaChart.series = [
+                {
+                    name: 'Total de bon de commandes honores',
+                    data: userStats.map(e => e.honoredCommands),
+                },
+                {
+                    name: 'Total visites',
+                    data: userStats.map(e => e.doneVisits),
+                },
+            ];
 
-        //         this.state.teamVisitGoalAreaChart.series = [
-        //             {
-        //                 name: 'Total visites',
-        //                 data: teamVisitsData.map(e => e.numberOfVisits),
-        //             },
-        //             {
-        //                 name: 'Objectifs de visites',
-        //                 data: teamVisitsData.map(e => e.visitsGoal),
-        //             },
-        //         ];
-        //         this.state.teamVisitTaskAreaChart.series = [
-        //             {
-        //                 name: 'Visites réalisées',
-        //                 data: teamVisitsData.map(e => e.numberOfVisits),
-        //             },
-        //             {
-        //                 name: 'Visites programmées',
-        //                 data: teamVisitsData.map(e => e.numberOfTasks),
-        //             },
-        //         ];
+            this.state.kamSalesAreaChart.series = [
+                {
+                    name: 'Total chiffre d\'affaire',
+                    data: userStats.map(e => e.totalSales),
+                },
+                {
+                    name: 'Objectifs chiffre d\'affaire',
+                    data: userStats.map(e => e.goalSales),
+                },
+            ];
 
-        //         this.state.salesAreaChart.series = [
-        //             {
-        //                 name: 'Total chiffre d\'affaire',
-        //                 data: salesStats.map(e => e.totalSales),
-        //             },
-        //             {
-        //                 name: 'Objectifs chiffre d\'affaire',
-        //                 data: salesStats.map(e => e.salesGoal),
-        //             },
-        //         ];
+            this.state.kamVisitGoalAreaChart.series = [
+                {
+                    name: 'Visites réalisées',
+                    data: userStats.map(e => e.doneVisits),
+                },
+                {
+                    name: 'Objectifs de visites',
+                    data: userStats.map(e => e.goalVisits),
+                },
+            ];
 
-        //         this.state.visitGoalAreaChart.series = [
-        //             {
-        //                 name: 'Visites réalisées',
-        //                 data: visitStats.map(e => e.numberOfVisits),
-        //             },
-        //             {
-        //                 name: 'Objectifs de visites',
-        //                 data: visitStats.map(e => e.visitsGoal),
-        //             },
-        //         ];
+            this.state.kamVisitTaskAreaChart.series = [
+                {
+                    name: 'Visites réalisées',
+                    data: userStats.map(e => e.doneVisits),
+                },
+                {
+                    name: 'visites programmées',
+                    data: userStats.map(e => e.allVisits),
+                },
+            ];
 
-        //         this.state.visitTaskAreaChart.series = [
-        //             {
-        //                 name: 'Visites réalisées',
-        //                 data: visitStats.map(e => e.numberOfVisits),
-        //             },
-        //             {
-        //                 name: 'visites programmées',
-        //                 data: visitStats.map(e => e.numberOfTasks),
-        //             },
-        //         ];
-        //     }
+        }
+        if (this.state.selectedSupervisor) {
+            var teamStats = await this.statisticsService.getTeamStats(this.state.selectedSupervisor!._id!, date);
+            var usersContributions = await this.statisticsService.getContributionsUsers(this.state.selectedSupervisor!._id!, date);
+            var teamContribution = await this.statisticsService.getContributionTeam(this.state.selectedSupervisor!._id!, date);
+
+            this.state.teamContributionPieOptions.series = [teamContribution.teamSales, teamContribution.allSales - teamContribution.teamSales];
+            this.state.delegatesContributionChartPie.series = [...usersContributions.map(e => e.total)];
+            this.state.delegatesContributionChartPie.labels = [];
+            usersContributions.forEach(e => {
+                this.state.delegatesContributionChartPie.labels?.push(e.fullName);
+            });
 
 
-        //     this.setState({
-        //         selectedDate: date,
-        //         loadingStatisticsData: false,
-        //         visitGoalAreaChart: this.state.visitGoalAreaChart,
-        //         visitTaskAreaChart: this.state.visitTaskAreaChart,
-        //         salesAreaChart: this.state.salesAreaChart,
-        //         chartPieOptions: this.state.chartPieOptions,
-        //         teamContributionPieOptions: this.state.teamContributionPieOptions,
-        //     });
-        // } else {
+            this.state.teamContributionPieOptions.labels?.splice(0, this.state.teamContributionPieOptions.labels?.length);
+            this.state.teamContributionPieOptions.labels?.push('equipe');
+            this.state.teamContributionPieOptions.labels?.push('entreprise');
 
-        //     if (this.state.selectedDelegate) {
-        //         var visitStats = await this.statisticsService.getDelegateYearVisitStats(date, this.state.selectedDelegate!.id!);
-        //         var salesStats = await this.statisticsService.getDelegateYearSaleStats(date, this.state.selectedDelegate!.id!);
-        //         var successRate = await this.statisticsService.getDelegateSuccessRateYear(this.state.selectedDelegate!.id!, date);
-        //         var contributionStats = await this.statisticsService.getDelegateContributionStats(date, this.state.selectedDelegate!.id!, this.state.selectedSupervisor!.id!);
-        //         var delegatesContributions = await this.statisticsService.getDelegatesContributionsOfSupervisor(this.state.selectedSupervisor!.id!, date,);
 
-        //         this.state.chartPieOptions.series = [contributionStats.delegateSales, contributionStats.teamSales - contributionStats.delegateSales];
-        //         this.state.delegatesContributionChartPie.series = [...delegatesContributions.map(e => e.ChiffreDaffaire)];
-        //         delegatesContributions.forEach(e => {
-        //             this.state.delegatesContributionChartPie.labels?.push(e.delegateName);
-        //         });
-        //         this.state.chartPieOptions.labels?.splice(0, this.state.chartPieOptions.labels?.length);
-        //         this.state.chartPieOptions.labels?.push(this.state.selectedDelegate!.username!);
-        //         this.state.chartPieOptions.labels?.push('reste d\'equipe');
-        //         this.state.delegatesContributionChartPie.labels?.splice(0, this.state.chartPieOptions.labels?.length);
+            this.state.teamSuccessRateAreaChart.series = [
+                {
+                    name: 'Total de bon de commandes honores',
+                    data: teamStats.map(e => e.honoredCommands),
+                },
+                {
+                    name: 'Total visites',
+                    data: teamStats.map(e => e.doneVisits),
+                },
+            ];
 
-        //         this.state.delegateSuccessRateAreaChart.series = [
-        //             {
-        //                 name: 'Total de bon de commandes honores',
-        //                 data: successRate.map(e => e.honoredCommands),
-        //             },
-        //             {
-        //                 name: 'Total visites',
-        //                 data: successRate.map(e => e.totalVisits),
-        //             },
-        //         ];
+            this.state.teamSalesAreaChart.series = [
+                {
+                    name: 'Total des ventes',
+                    data: teamStats.map(e => e.totalSales),
+                },
+                {
+                    name: 'Objectifs chiffre d\'affaire',
+                    data: teamStats.map(e => e.goalSales),
+                },
+            ];
 
-        //         this.state.salesAreaChart.series = [
-        //             {
-        //                 name: 'Total chiffre d\'affaire',
-        //                 data: salesStats.map(e => e.totalSales),
-        //             },
-        //             {
-        //                 name: 'Objectifs chiffre d\'affaire',
-        //                 data: salesStats.map(e => e.salesGoal),
-        //             },
-        //         ];
+            this.state.teamVisitGoalAreaChart.series = [
+                {
+                    name: 'Total visites',
+                    data: teamStats.map(e => e.allVisits),
+                },
+                {
+                    name: 'Objectifs de visites',
+                    data: teamStats.map(e => e.goalVisits),
+                },
+            ];
+            this.state.teamVisitTaskAreaChart.series = [
+                {
+                    name: 'Visites réalisées',
+                    data: teamStats.map(e => e.doneVisits),
+                },
+                {
+                    name: 'Visites programmées',
+                    data: teamStats.map(e => e.goalVisits),
+                },
+            ];
 
-        //         this.state.visitGoalAreaChart.series = [
-        //             {
-        //                 name: 'Visites réalisées',
-        //                 data: visitStats.map(e => e.numberOfVisits),
-        //             },
-        //             {
-        //                 name: 'Objectifs de visites',
-        //                 data: visitStats.map(e => e.visitsGoal),
-        //             },
-        //         ];
+        }
+        else if(this.state.selectedSupervisor === undefined && this.props.currentUser.role === UserRole.supervisor){
+            var teamStats = await this.statisticsService.getTeamStats(this.props.currentUser!._id!, date);
+            var usersContributions = await this.statisticsService.getContributionsUsers(this.props.currentUser!._id!,date);
+            var teamContribution = await this.statisticsService.getContributionTeam(this.props.currentUser!._id!, date);
 
-        //         this.state.visitTaskAreaChart.series = [
-        //             {
-        //                 name: 'Visites réalisées',
-        //                 data: visitStats.map(e => e.numberOfVisits),
-        //             },
-        //             {
-        //                 name: 'visites programmées',
-        //                 data: visitStats.map(e => e.numberOfTasks),
-        //             },
-        //         ];
-        //     }
-        //     this.setState({
-        //         selectedDate: date,
-        //         loadingStatisticsData: false,
-        //         visitGoalAreaChart: this.state.visitGoalAreaChart,
-        //         visitTaskAreaChart: this.state.visitTaskAreaChart,
-        //         salesAreaChart: this.state.salesAreaChart,
-        //         chartPieOptions: this.state.chartPieOptions,
-        //         teamContributionPieOptions: this.state.teamContributionPieOptions,
-        //     });
-        // }
+            this.state.teamContributionPieOptions.series = [teamContribution.teamSales, teamContribution.allSales - teamContribution.teamSales];
+            this.state.delegatesContributionChartPie.series = [...usersContributions.map(e => e.total)];
+            this.state.delegatesContributionChartPie.labels = [];
+            usersContributions.forEach(e => {
+                this.state.delegatesContributionChartPie.labels?.push(e.fullName);
+            });
+
+
+            this.state.teamContributionPieOptions.labels?.splice(0, this.state.teamContributionPieOptions.labels?.length);
+            this.state.teamContributionPieOptions.labels?.push('equipe');
+            this.state.teamContributionPieOptions.labels?.push('entreprise');
+
+
+            this.state.teamSuccessRateAreaChart.series = [
+                {
+                    name: 'Total de bon de commandes honores',
+                    data: teamStats.map(e => e.honoredCommands),
+                },
+                {
+                    name: 'Total visites',
+                    data: teamStats.map(e => e.doneVisits),
+                },
+            ];
+
+            this.state.teamSalesAreaChart.series = [
+                {
+                    name: 'Total des ventes',
+                    data: teamStats.map(e => e.totalSales),
+                },
+                {
+                    name: 'Objectifs chiffre d\'affaire',
+                    data: teamStats.map(e => e.goalSales),
+                },
+            ];
+
+            this.state.teamVisitGoalAreaChart.series = [
+                {
+                    name: 'Total visites',
+                    data: teamStats.map(e => e.allVisits),
+                },
+                {
+                    name: 'Objectifs de visites',
+                    data: teamStats.map(e => e.goalVisits),
+                },
+            ];
+            this.state.teamVisitTaskAreaChart.series = [
+                {
+                    name: 'Visites réalisées',
+                    data: teamStats.map(e => e.doneVisits),
+                },
+                {
+                    name: 'Visites programmées',
+                    data: teamStats.map(e => e.goalVisits),
+                },
+            ];
+        }
+        if(this.props.currentUser.role === UserRole.admin){
+            var companyStats = await this.statisticsService.getCompanyStats(date);
+            var companyContribution = await this.statisticsService.getContributionCompany(date);
+            this.state.companyContributionChartPie.series = [...companyContribution.map(e => e.totalRemised)];
+            this.state.companyContributionChartPie.labels = [];
+            companyContribution.forEach(e => {
+                this.state.companyContributionChartPie.labels?.push(e.fullName);
+            });
+            this.state.companySalesAreaChart.series = [
+                {
+                    name: 'Total chiffre d\'affaire',
+                    data: companyStats.map(e => e.totalSales),
+                },
+            ];
+            this.state.companyVisitTaskAreaChart.series = [
+                {
+                    name: 'Visites réalisées',
+                    data: companyStats.map(e => e.doneVisits),
+                },
+                {
+                    name: 'visites programmées',
+                    data: companyStats.map(e => e.allVisits),
+                },
+            ];
+            this.state.companySuccessRateAreaChart.series = [
+                {
+                    name: 'Total de bon de commandes honores',
+                    data: companyStats.map(e => e.honoredCommands),
+                },
+                {
+                    name: 'Total visites',
+                    data: companyStats.map(e => e.doneVisits),
+                },
+            ];
+        }
+        this.setState({
+            selectedDate: date,
+            loadingStatisticsData: false,
+        });
     }
 
     handleSelectSupervisor = async (supervisor?: UserModel) => {
@@ -994,7 +1013,39 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
         } else {
             var supervisors = await this.userService.getUsers([UserRole.supervisor]);
             var kams = await this.userService.getUsers([UserRole.kam]);
-
+            var companyStats = await this.statisticsService.getCompanyStats(new Date());
+            var companyContribution = await this.statisticsService.getContributionCompany(new Date());
+            this.state.companyContributionChartPie.series = [...companyContribution.map(e => e.totalRemised)];
+            this.state.companyContributionChartPie.labels = [];
+            companyContribution.forEach(e => {
+                this.state.companyContributionChartPie.labels?.push(e.fullName);
+            });
+            this.state.companySalesAreaChart.series = [
+                {
+                    name: 'Total chiffre d\'affaire',
+                    data: companyStats.map(e => e.totalSales),
+                },
+            ];
+            this.state.companyVisitTaskAreaChart.series = [
+                {
+                    name: 'Visites réalisées',
+                    data: companyStats.map(e => e.doneVisits),
+                },
+                {
+                    name: 'visites programmées',
+                    data: companyStats.map(e => e.allVisits),
+                },
+            ];
+            this.state.companySuccessRateAreaChart.series = [
+                {
+                    name: 'Total de bon de commandes honores',
+                    data: companyStats.map(e => e.honoredCommands),
+                },
+                {
+                    name: 'Total visites',
+                    data: companyStats.map(e => e.doneVisits),
+                },
+            ];
             this.setState({
                 supervisors: supervisors,
                 kams: kams,
@@ -1047,6 +1098,9 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
                                     {
                                         this.props.currentUser.role === UserRole.admin ? (<Tab label="Kam" />) : undefined
                                     }
+                                    {
+                                        this.props.currentUser.role === UserRole.admin ? (<Tab label="Entreprise" />) : undefined
+                                    }
                                 </Tabs>
                             </Box>
                             <CustomTabPanel value={this.state.index} index={0} >
@@ -1091,8 +1145,8 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
                                         <div style={{ padding: '0px 8px', width: 'calc(100% - 16px)', overflow: 'hidden' }}>
                                             <div style={{ display: 'flex', }}>
                                                 <ReactApexChart
-                                                    options={this.state.salesAreaChart}
-                                                    series={this.state.salesAreaChart.series}
+                                                    options={this.state.delegateSalesAreaChart}
+                                                    series={this.state.delegateSalesAreaChart.series}
                                                     type="area"
                                                     height={350}
                                                     style={{
@@ -1384,6 +1438,90 @@ class StatisticsPage extends Component<StatisticsPageProps, StatisticsPageState>
                                                         width: 'calc(100% - 33.5px)',
                                                         border: 'solid rgba(0,0,0,0.2) 1px',
                                                         borderRadius: '0px 0px 4px 4px',
+                                                        padding: '16px',
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )
+
+                                }
+                            </CustomTabPanel>
+                            <CustomTabPanel value={this.state.index} index={3} >
+                                <div style={{ display: 'flex', justifyContent: 'stretch', flexGrow: '1', marginTop: '16px' }}>
+                                    <div style={{ display: 'flex' }}>
+                                        <YearPicker initialDate={this.state.selectedDate} onPick={this.handleOnPickDate}></YearPicker >
+                                    </div>
+                                </div>
+                                {
+                                    this.state.loadingStatisticsData ? (
+                                        <div style={{
+                                            display: 'flex',
+                                            flexGrow: '1',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            height: '700px'
+                                        }}>
+                                            <DotSpinner
+                                                size={40}
+                                                speed={0.9}
+                                                color="black"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div style={{ padding: '0px 8px', width: 'calc(100% - 16px)', overflow: 'hidden' }}>
+                                            <div style={{ display: 'flex' }}>
+                                                <ReactApexChart
+                                                    options={this.state.companySalesAreaChart}
+                                                    series={this.state.companySalesAreaChart.series}
+                                                    type="area"
+                                                    height={350}
+                                                    style={{
+                                                        backgroundColor: 'white',
+                                                        width: 'calc(50% - 33.5px)',
+                                                        border: 'solid rgba(0,0,0,0.2) 1px',
+                                                        borderRadius: '4px 0px 0px 0px',
+                                                        padding: '16px'
+                                                    }}
+                                                />
+                                                <ReactApexChart
+                                                    options={this.state.companyContributionChartPie}
+                                                    series={this.state.companyContributionChartPie.series}
+                                                    type="pie"
+                                                    height={350}
+                                                    style={{
+                                                        backgroundColor: 'white',
+                                                        width: 'calc(50% - 33.5px)',
+                                                        border: 'solid rgba(0,0,0,0.2) 1px',
+                                                        borderRadius: '0px 4px 0px 0px',
+                                                        padding: '16px'
+                                                    }}
+                                                />
+                                            </div>
+                                            <div style={{ display: 'flex' }}>
+                                                <ReactApexChart
+                                                    options={this.state.companySuccessRateAreaChart}
+                                                    series={this.state.companySuccessRateAreaChart.series}
+                                                    type="area"
+                                                    height={350}
+                                                    style={{
+                                                        backgroundColor: 'white',
+                                                        width: 'calc(50% - 33.5px)',
+                                                        border: 'solid rgba(0,0,0,0.2) 1px',
+                                                        borderRadius: '0px 0px 0px 4px',
+                                                        padding: '16px',
+                                                    }}
+                                                />
+                                                <ReactApexChart
+                                                    options={this.state.companyVisitTaskAreaChart}
+                                                    series={this.state.companyVisitTaskAreaChart.series}
+                                                    type="area"
+                                                    height={350}
+                                                    style={{
+                                                        backgroundColor: 'white',
+                                                        width: 'calc(50% - 33.5px)',
+                                                        border: 'solid rgba(0,0,0,0.2) 1px',
+                                                        borderRadius: '0px 0px 4px 0px',
                                                         padding: '16px',
                                                     }}
                                                 />

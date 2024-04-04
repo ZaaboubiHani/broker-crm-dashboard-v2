@@ -13,9 +13,9 @@ export default class ExpensesDayEntity {
     totalExpense?: number;
     startWilaya?: string;
     endWilaya?: string;
-    startCity?: string;
-    endCity?: string;
-    date?: Date;
+    startCommune?: string;
+    endCommune?: string;
+    expenseDate?: Date;
     proofs?: FileEntity[];
 
     constructor(data?: Partial<ExpensesDayEntity>) {
@@ -25,8 +25,8 @@ export default class ExpensesDayEntity {
     }
 
     static fromJson(json: Record<string, any>): ExpensesDayEntity {
-        const date = json.date ? new Date(json.date) : undefined;
-        return new ExpensesDayEntity({ ...json, date });
+        const expenseDate = json.expenseDate ? new Date(json.expenseDate) : undefined;
+        return new ExpensesDayEntity({ ...json, expenseDate });
     }
 
     toJson(): Record<string, any> {

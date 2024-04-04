@@ -17,7 +17,7 @@ export default class AuthRemote {
                 });
             if (response.status >= 200 && response.status < 300) {
                 var user = UserModel.fromJson(response.data);
-                user.token = token ?? undefined;
+                user.accessToken = token ?? undefined;
                 return new ResponseEntity({ code: response.status, data: user });
             }
             return new ResponseEntity({ code: response.status, message: 'failed to receive or convert data' });
@@ -41,7 +41,8 @@ export default class AuthRemote {
                     password: password
                 });
             if (response.status == 200) {
-                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('token', response.data.data.accessToken);
+                localStorage.setItem('refreshToken', response.data.data.refreshToken);
                 localStorage.setItem('isLogged', 'true');
                 return new ResponseEntity({ code: response.status, data: true });
             }

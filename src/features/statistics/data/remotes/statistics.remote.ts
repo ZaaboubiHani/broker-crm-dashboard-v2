@@ -45,6 +45,26 @@ export default class StatisticsRemote {
             return new ResponseEntity({ code: error.response.status, message: error.response.statusText, data: [] });
         }
     }
+    async getCompanyStats(date: Date): Promise<ResponseEntity> {
+        const token = localStorage.getItem('token');
+        try {
+            var response = await Api.instance.getAxios().get(`/stats/year/admin/yearlyStats`, {
+                params: {
+                    year: date.getFullYear(),
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (response.status == 200) {
+
+                return new ResponseEntity({ code: response.status, data: response.data });
+            }
+            return new ResponseEntity({ code: response.status, data: [] });
+        } catch (error: any) {
+            return new ResponseEntity({ code: error.response.status, message: error.response.statusText, data: [] });
+        }
+    }
 
     async getContributionUser(userId: string, date: Date): Promise<ResponseEntity> {
         const token = localStorage.getItem('token');
@@ -53,6 +73,26 @@ export default class StatisticsRemote {
                 params: {
                     year: date.getFullYear(),
                     userId: userId,
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (response.status == 200) {
+
+                return new ResponseEntity({ code: response.status, data: response.data });
+            }
+            return new ResponseEntity({ code: response.status, data: [] });
+        } catch (error: any) {
+            return new ResponseEntity({ code: error.response.status, message: error.response.statusText, data: [] });
+        }
+    }
+    async getContributionCompany(date: Date): Promise<ResponseEntity> {
+        const token = localStorage.getItem('token');
+        try {
+            var response = await Api.instance.getAxios().get(`/stats/year/admin/contributionchiffredaffaireannuel`, {
+                params: {
+                    year: date.getFullYear(),
                 },
                 headers: {
                     Authorization: `Bearer ${token}`

@@ -19,7 +19,8 @@ export default class UserEntity {
     email?: string;
     isBlocked?: boolean;
     password?: string;
-    token?: string;
+    accessToken?: string;
+    refreshToken?: string;
     wilaya?: string;
     commune?: string;
     createdAt?: Date;

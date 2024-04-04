@@ -74,20 +74,25 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
     handleSelectDelegate = async (delegate?: UserModel) => {
         this.setState({ loadingExpensesData: true, });
         var delegteExpenses = await this.expenseService.getExpensesDay(this.state.selectedDate, delegate!._id!);
-        // var delegteExpensesUser = await this.expenseService.getExpensesUserByDateMoth(this.state.selectedDate, delegate!.id!);
+        var delegteExpensesUser = await this.expenseService.getExpenseUser(this.state.selectedDate, delegate!._id!);
         this.setState({
             selectedDelegate: delegate,
             delegteExpenses: delegteExpenses,
             loadingExpensesData: false,
-            // delegteExpensesUser: delegteExpensesUser
+            delegteExpensesUser: delegteExpensesUser
         });
     }
 
     handleSelectKam = async (kam?: UserModel) => {
-        // this.setState({ loadingExpensesData: true, });
-        // var kamExpenses = await this.expenseService.getAllExpensesOfUserByDateMoth(this.state.selectedDate, kam!.id!);
-        // var kamExpensesUser = await this.expenseService.getExpensesUserByDateMoth(this.state.selectedDate, kam!.id!);
-        // this.setState({ selectedKam: kam, kamExpenses: kamExpenses, loadingExpensesData: false, kamExpensesUser: kamExpensesUser });
+        this.setState({ loadingExpensesData: true, });
+        var kamExpenses = await this.expenseService.getExpensesDay(this.state.selectedDate, kam!._id!);
+        var kamExpensesUser = await this.expenseService.getExpenseUser(this.state.selectedDate, kam!._id!);
+        this.setState({
+            selectedKam: kam,
+            kamExpenses: kamExpenses,
+            loadingExpensesData: false,
+            kamExpensesUser: kamExpensesUser
+        });
     }
 
     handleSelectSupervisor = async (supervisor?: UserModel) => {
@@ -109,20 +114,20 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
         this.setState({ loadingExpensesData: true, });
         if (this.state.selectedDelegate) {
             var delegteExpenses = await this.expenseService.getExpensesDay(date, this.state.selectedDelegate!._id!);
-            // var delegteExpensesUser = await this.expenseService.getExpensesUserByDateMoth(date, this.state.selectedDelegate!.id!);
+            var delegteExpensesUser = await this.expenseService.getExpenseUser(date, this.state.selectedDelegate!._id!);
             this.setState({
                 delegteExpenses: delegteExpenses,
-                // delegteExpensesUser: delegteExpensesUser
+                delegteExpensesUser: delegteExpensesUser
             });
         }
-        // if (this.state.selectedKam) {
-        //     var kamExpenses = await this.expenseService.getAllExpensesOfUserByDateMoth(date, this.state.selectedKam!.id!);
-        //     var kamExpensesUser = await this.expenseService.getExpensesUserByDateMoth(date, this.state.selectedKam!.id!);
-        //     this.setState({
-        //         kamExpenses: kamExpenses,
-        //         kamExpensesUser: kamExpensesUser,
-        //     });
-        // }
+        if (this.state.selectedKam) {
+            var kamExpenses = await this.expenseService.getExpensesDay(date, this.state.selectedKam!._id!);
+            var kamExpensesUser = await this.expenseService.getExpenseUser(date, this.state.selectedKam!._id!);
+            this.setState({
+                kamExpenses: kamExpenses,
+                kamExpensesUser: kamExpensesUser,
+            });
+        }
 
         this.setState({
             selectedDate: date,
@@ -130,10 +135,39 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
         });
     }
 
-    handleValidateExpensesUser = async () => {
-        // if (this.state.delegteExpensesUser?.id) {
-        //     await this.expenseService.validateExpensesUser(this.state.delegteExpensesUser!.id!);
-        // }
+    handleValidateDelegateExpensesUser = async () => {
+        if (this.state.delegteExpensesUser?._id) {
+            await this.expenseService.validateExpenseUser(this.state.delegteExpensesUser!._id!);
+            this.setState({ loadingExpensesData: true, });
+            if (this.state.selectedDelegate) {
+                var delegteExpenses = await this.expenseService.getExpensesDay(this.state.selectedDate, this.state.selectedDelegate!._id!);
+                var delegteExpensesUser = await this.expenseService.getExpenseUser(this.state.selectedDate, this.state.selectedDelegate!._id!);
+                this.setState({
+                    delegteExpenses: delegteExpenses,
+                    delegteExpensesUser: delegteExpensesUser
+                });
+            }
+            this.setState({
+                loadingExpensesData: false,
+            });
+        }
+    }
+    handleValidateKamExpensesUser = async () => {
+        if (this.state.kamExpensesUser?._id) {
+            await this.expenseService.validateExpenseUser(this.state.kamExpensesUser!._id!);
+            this.setState({ loadingExpensesData: true, });
+            if (this.state.selectedKam) {
+                var kamExpenses = await this.expenseService.getExpensesDay(this.state.selectedDate, this.state.selectedKam!._id!);
+                var kamExpensesUser = await this.expenseService.getExpenseUser(this.state.selectedDate, this.state.selectedKam!._id!);
+                this.setState({
+                    kamExpenses: kamExpenses,
+                    kamExpensesUser: kamExpensesUser,
+                });
+            }
+            this.setState({
+                loadingExpensesData: false,
+            });
+        }
     }
 
     loadExpensePageData = async () => {
@@ -237,7 +271,7 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
                                 <div style={{ border: 'solid #ddd 1px', borderRadius: '8px', backgroundColor: '#fff', margin: '0px 16px 8px 16px', height: '35px', display: 'flex', justifyContent: 'space-evenly', alignItems: 'center' }}>
                                     <h6 style={{ margin: '0px', height: '32px', fontSize: '16px', marginRight: '16px', display: 'flex', alignItems: 'center' }}>
                                         état: {this.state.delegteExpensesUser.validation === ValidationType.hold ? 'En attente' :
-                                            this.state.delegteExpensesUser.validation === ValidationType.sent ? 'Envoyée' : 'Approuvée'
+                                            this.state.delegteExpensesUser.validation === ValidationType.sent ? 'Envoyée' : this.state.delegteExpensesUser.validation === ValidationType.approved ? 'Approuvée' : 'aucun'
                                         }
                                     </h6>
                                     <h6 style={{ margin: '0px', height: '32px', fontSize: '16px', marginRight: '16px', display: 'flex', alignItems: 'center' }}>
@@ -254,7 +288,7 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
                                     </h6>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'end' }}>
-                                    <MuiButton variant="outlined" disableElevation sx={{ marginRight: '16px', marginBottom: '16px' }} onClick={() => {
+                                    <MuiButton variant="outlined" disabled={!this.state.selectedDelegate?._id} disableElevation sx={{ marginRight: '16px', marginBottom: '16px' }} onClick={() => {
                                         this.setState({ expenseStatsDialogIsOpen: true });
                                     }}>
                                         Ouvrir statistiques manuelles
@@ -264,15 +298,15 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
                                     }}>
                                         Consulter piece jointes
                                     </MuiButton>
-                                    <MuiButton disabled={this.state.delegteExpensesUser.validation === ValidationType.hold || this.state.delegteExpensesUser.validation === ValidationType.approved} variant="contained" disableElevation sx={{ marginBottom: '16px' }} onClick={this.handleValidateExpensesUser}>
+                                    <MuiButton disabled={this.state.delegteExpensesUser.validation === ValidationType.hold || this.state.delegteExpensesUser.validation === ValidationType.approved || this.state.delegteExpensesUser.validation === undefined} variant="contained" disableElevation sx={{ marginBottom: '16px' }} onClick={this.handleValidateDelegateExpensesUser}>
                                         Valider la note de frais
                                     </MuiButton>
                                 </div>
                                 <ProofsDialog data={this.state.delegteExpenses.map<{ date: Date, urls: string[] }>((ex) => {
-                                    var link: { date: Date, urls: string[] } = { date: ex.date!, urls: ex.proofs?.map(p => p.url ?? '') ?? [] };
+                                    var link: { date: Date, urls: string[] } = { date: ex.expenseDate!, urls: ex.proofs?.map(p => p.url ?? '') ?? [] };
                                     return link;
                                 })} isOpen={this.state.proofsDialogIsOpen} onClose={this.handleCloseProofsDialog} ></ProofsDialog>
-                                {/* <ExpenseStatsDialog userId={this.state.selectedDelegate?._id} isOpen={this.state.expenseStatsDialogIsOpen} onClose={this.handleCloseExpenseStatsDialog} ></ExpenseStatsDialog> */}
+                                <ExpenseStatsDialog userId={this.state.selectedDelegate?._id} isOpen={this.state.expenseStatsDialogIsOpen} onClose={this.handleCloseExpenseStatsDialog} ></ExpenseStatsDialog>
                             </div>
                         </CustomTabPanel>
                         <CustomTabPanel value={this.state.index} index={1} >
@@ -300,8 +334,8 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
                                 </div>
                                 <div style={{ border: 'solid #ddd 1px', borderRadius: '8px', backgroundColor: '#fff', margin: '0px 16px 8px 16px', height: '35px', display: 'flex', justifyContent: 'space-evenly', alignItems: 'center' }}>
                                     <h6 style={{ margin: '0px', height: '32px', fontSize: '16px', marginRight: '16px', display: 'flex', alignItems: 'center' }}>
-                                        état: {this.state.delegteExpensesUser.validation === ValidationType.hold ? 'En attente' :
-                                            this.state.delegteExpensesUser.validation === ValidationType.sent ? 'Envoyée' : 'Approuvée'
+                                        état: {this.state.kamExpensesUser.validation === ValidationType.hold ? 'En attente' :
+                                            this.state.kamExpensesUser.validation === ValidationType.sent ? 'Envoyée' : this.state.kamExpensesUser.validation === ValidationType.approved ? 'Approuvée' : 'aucun'
                                         }
                                     </h6>
                                     <h6 style={{ margin: '0px', height: '32px', fontSize: '16px', marginRight: '16px', display: 'flex', alignItems: 'center' }}>
@@ -318,7 +352,7 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
                                     </h6>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'end' }}>
-                                    <MuiButton variant="outlined" disableElevation sx={{ marginRight: '16px', marginBottom: '16px' }} onClick={() => {
+                                    <MuiButton variant="outlined" disabled={!this.state.selectedKam?._id} disableElevation sx={{ marginRight: '16px', marginBottom: '16px' }} onClick={() => {
                                         this.setState({ expenseStatsDialogIsOpen: true });
                                     }}>
                                         Ouvrir statistiques manuelles
@@ -328,15 +362,15 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
                                     }}>
                                         Consulter piece jointes
                                     </MuiButton>
-                                    <MuiButton disabled={this.state.delegteExpensesUser.validation === ValidationType.hold || this.state.delegteExpensesUser.validation === ValidationType.approved} variant="contained" disableElevation sx={{ marginBottom: '16px' }} onClick={this.handleValidateExpensesUser}>
+                                    <MuiButton disabled={this.state.kamExpensesUser.validation === ValidationType.hold || this.state.kamExpensesUser.validation === ValidationType.approved || this.state.kamExpensesUser.validation === undefined} variant="contained" disableElevation sx={{ marginBottom: '16px' }} onClick={this.handleValidateKamExpensesUser}>
                                         Valider la note de frais
                                     </MuiButton>
                                 </div>
                                 <ProofsDialog data={this.state.kamExpenses.map<{ date: Date, urls: string[] }>((ex) => {
-                                    var link: { date: Date, urls: string[] } = { date: ex.date!, urls: ex.proofs?.map(p => p.url ?? '') ?? []};
+                                    var link: { date: Date, urls: string[] } = { date: ex.expenseDate!, urls: ex.proofs?.map(p => p.url ?? '') ?? [] };
                                     return link;
                                 })} isOpen={this.state.proofsDialogIsOpen} onClose={this.handleCloseProofsDialog} ></ProofsDialog>
-                                {/* <ExpenseStatsDialog userId={this.state.selectedKam?._id} isOpen={this.state.expenseStatsDialogIsOpen} onClose={this.handleCloseExpenseStatsDialog} ></ExpenseStatsDialog> */}
+                                <ExpenseStatsDialog userId={this.state.selectedKam?._id} isOpen={this.state.expenseStatsDialogIsOpen} onClose={this.handleCloseExpenseStatsDialog} ></ExpenseStatsDialog>
                             </div>
                         </CustomTabPanel>
                     </Box>

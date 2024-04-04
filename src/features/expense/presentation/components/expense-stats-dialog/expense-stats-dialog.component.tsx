@@ -5,14 +5,14 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from "@mui/material/DialogContent";
 import { DialogActions } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
-import {  calculateDaysBetweenDates } from "../../../../../core/functions/date-format";
+import { calculateDaysBetweenDates } from "../../../../../core/functions/date-format";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import DotSpinner from "@uiball/loaders/dist/components/DotSpinner";
 import SearchIcon from '@mui/icons-material/Search';
-import ExpenseService from "../../../data/services/expense.service";
 import ExpenseDayModel from "../../../domain/models/expense-day.model";
 import { DatePicker } from "@mui/x-date-pickers";
+import ExpenseService from "../../../data/services/expense.service";
 
 interface ExpenseStatsDialogProps {
     isOpen: boolean,
@@ -29,7 +29,7 @@ const ExpenseStatsDialog: React.FC<ExpenseStatsDialogProps> = ({ onClose, isOpen
     const handleFetchStats = async () => {
         if (startDate && endDate && userId && !isLoading) {
             setIsLoading(true);
-            // let expenses = await expenseService.getAllExpensesOfUserFromTo(startDate, endDate, userId);
+            let expenses = await expenseService.getExpensesDayInterval(startDate, endDate, userId);
             setExpenses(expenses);
             setIsLoading(false);
         }
@@ -91,8 +91,8 @@ const ExpenseStatsDialog: React.FC<ExpenseStatsDialogProps> = ({ onClose, isOpen
                         <SearchIcon sx={{
                             color: 'black',
                             position: 'absolute',
-                            top: '75px',
-                            right: '195px',
+                            top: '73px',
+                            right: '192px',
                             opacity: isLoading ? '0' : '1',
                             transition: 'all 500ms ease'
                         }} />

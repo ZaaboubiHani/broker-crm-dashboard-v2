@@ -4,8 +4,14 @@ export enum CompanyType {
 }
 
 export default class CompanyEntity {
-    _id?: number;
+    _id?: string;
     name?: string;
+    logo?: { _id: string, url: string };
+    address?: string;
+    phoneNumber1?: string;
+    phoneNumber2?: string;
+    email?: string;
+    color?: string;
     type?: CompanyType;
 
     constructor(data?: Partial<CompanyEntity>) {
@@ -19,7 +25,7 @@ export default class CompanyEntity {
     }
 
     toJson(): Record<string, any> {
-        
+
         return { ...this };
     }
 

@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { DotSpinner } from '@uiball/loaders'
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CommentModel from '../../models/comment.model';
-import ScalableTable from '../scalable-table/scalable-table.component';
+import SpecialityModel from '../../../domain/models/speciality.model';
+import ScalableTable from '../../../../../core/components/scalable-table/scalable-table.component';
 
-interface CommentTableProps {
-    data: CommentModel[];
+interface SpecialityTableProps {
+    data: SpecialityModel[];
     isLoading: boolean;
-    onRemove: (id: number) => void;
+    onRemove: (id: string) => void;
     id?: string;
     page: number;
     size: number;
@@ -16,7 +16,7 @@ interface CommentTableProps {
     pageChange: (page: number, size: number) => void;
 }
 
-const CommentTable: React.FC<CommentTableProps> = ({ data, id, isLoading, onRemove, total, size, page, pageChange, }) => {
+const SpecialityTable: React.FC<SpecialityTableProps> = ({ data, id, isLoading, onRemove, total, size, page, pageChange, }) => {
 
     const [rowsPerPage, setRowsPerPage] = React.useState(size);
 
@@ -31,7 +31,6 @@ const CommentTable: React.FC<CommentTableProps> = ({ data, id, isLoading, onRemo
             style={{
                 borderRadius: '8px',
                 height: '400px',
-                
             }}>
             {
                 isLoading ? (<div style={{
@@ -54,16 +53,16 @@ const CommentTable: React.FC<CommentTableProps> = ({ data, id, isLoading, onRemo
                         rows={
                             [...data.map((row) => {
                                 return {
-                                    id: row.id,
-                                    comment: row.comment,
+                                    id: row._id,
+                                    name: row.name,
                                     model: row,
                                 };
                             })]}
 
                         columns={[
                             {
-                                field: 'comment',
-                                headerName: 'Contenu du commentaire',
+                                field: 'name',
+                                headerName: 'Nom de spécialité',
                             },
                             {
                                 field: 'delete',
@@ -98,4 +97,4 @@ const CommentTable: React.FC<CommentTableProps> = ({ data, id, isLoading, onRemo
     );
 };
 
-export default CommentTable;
+export default SpecialityTable;

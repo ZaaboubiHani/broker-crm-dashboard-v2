@@ -1,0 +1,52 @@
+
+import ResponseEntity from "../../../../core/entities/response.entity";
+import CompanyEntity from "../../../../core/entities/company.entity";
+import { Api } from "../../../../core/api/api.source";
+
+export default class CompanyRemote {
+    async getCompanies(): Promise<ResponseEntity> {
+        const token = localStorage.getItem('token');
+        try {
+            var response = await Api.instance.getAxios().get(`/dashboard/companies`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.status == 200) {
+                let companies: CompanyEntity[] = [];
+                companies = [CompanyEntity.fromJson(response.data)];
+                return new ResponseEntity({ code: response.status, data: companies });
+            }
+            return new ResponseEntity({ code: response.status, data: [] });
+        } catch (error: any) {
+            return new ResponseEntity({ code: error.response.status, message: error.response.statusText, data: [] });
+        }
+    }
+
+    async updateCompany(company: CompanyEntity): Promise<ResponseEntity> {
+        const token = localStorage.getItem('token');
+        try {
+            var response = await Api.instance.getAxios().put(`/dashboard/companies/${company._id}`, {
+                logo: company.logo?._id,
+                name: company.name,
+                address: company.address,
+                phoneNumber1: company.phoneNumber1,
+                phoneNumber2: company.phoneNumber2,
+                email: company.email,
+                color: company.color,
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.status == 200) {
+                let updatedCompany = CompanyEntity.fromJson(response.data);
+                return new ResponseEntity({ code: response.status, data: updatedCompany });
+            }
+            return new ResponseEntity({ code: response.status, data: [] });
+        } catch (error: any) {
+            return new ResponseEntity({ code: error.response.status, message: error.response.statusText, data: [] });
+        }
+    }
+
+}

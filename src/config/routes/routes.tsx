@@ -18,13 +18,14 @@ import { assignCurrentUser } from '../../core/redux/current-user.slice';
 import DotSpinner from '@uiball/loaders/dist/components/DotSpinner';
 import ClientPage from '../../features/client/presentation/pages/clients-page/clients-page.component';
 import StatisticsPage from '../../features/statistics/presentation/pages/statistics-page/statistics-page.component';
+import ConfigPage from '../../features/config/presentation/pages/config-page.component';
 
 const AppRouter: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const authService = AuthService.getInstance();
   const dispatch = useDispatch();
-  const currentUser = useSelector((state: RootState) => state.counter.currentUser); // Assuming your currentUser reducer is under the key 'currentUser' in your rootReducer
+  const currentUser = useSelector((state: RootState) => state.counter.currentUser);
 
   const handleAutoAssign = async () => {
     if (!currentUser._id) {
@@ -87,6 +88,7 @@ const AppRouter: React.FC = () => {
                   <Route path="/task" element={<TaskPage currentUser={currentUser} />} />
                   <Route path="/client" element={<ClientPage currentUser={currentUser} />} />
                   <Route path="/statistics" element={<StatisticsPage currentUser={currentUser} />} />
+                  <Route path="/config" element={<ConfigPage currentUser={currentUser} />} />
                 </Routes>
               </div>
             </div>

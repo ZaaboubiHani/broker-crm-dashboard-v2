@@ -7,12 +7,11 @@ export default class CompanyRemote {
     async getCompanies(): Promise<ResponseEntity> {
         const token = localStorage.getItem('token');
         try {
-            var response = await Api.instance.getAxios().get(`/companies`, {
+            var response = await Api.instance.getAxios().get(`/dashboard/companies`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            console.log(response);
             if (response.status == 200) {
                 let companies: CompanyEntity[] = [];
                 companies = [CompanyEntity.fromJson(response.data)];

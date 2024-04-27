@@ -168,7 +168,7 @@ const UserDialog: React.FC<UserDialogProps> = (props: UserDialogProps) => {
 
     return (
         <Dialog fullWidth={true} maxWidth='md' onClose={handleClose} open={isOpen}  >
-            <DialogTitle>Ajouter un utilisateur</DialogTitle>
+            <DialogTitle>{initUser ? 'Modifier' :  'Ajouter'} un utilisateur</DialogTitle>
             <DialogContent>
                 <Box sx={{ flex: '1', marginTop: '4px' }}>
                     <Grid container spacing={2}>

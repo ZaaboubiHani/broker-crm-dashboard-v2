@@ -1,10 +1,10 @@
 
 import CommentModel from "../../domain/models/comment.model";
-import CommentRespository from "../../domain/repositories/comment.repository";
+import CommentRepository from "../../domain/repositories/comment.repository";
 import CommentRemote from "../remotes/comment.remote";
 
 
-export default class CommentService extends CommentRespository {
+export default class CommentService extends CommentRepository {
     private static _instance: CommentService | null = null;
     private _commentRemote?: CommentRemote = new CommentRemote();
 
@@ -16,7 +16,7 @@ export default class CommentService extends CommentRespository {
             CommentService._instance = new CommentService();
         return CommentService._instance;
     }
-    
+
     async getAllComments(): Promise<CommentModel[]> {
         let response = await this._commentRemote!.getComments(false);
         return response.data;

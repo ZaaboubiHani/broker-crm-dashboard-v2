@@ -1,4 +1,4 @@
 
 
-export default abstract class MotivationRespository {
+export default abstract class MotivationRepository {
 }

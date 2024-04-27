@@ -1,8 +1,8 @@
 import WilayaModel from "../../domain/models/wilaya.model";
-import WilayaRespository from "../../domain/repositories/wilaya.repository"
+import WilayaRepository from "../../domain/repositories/wilaya.repository"
 import WilayaRemote from "../remotes/wilaya.remote";
 
-export default class WilayaService extends WilayaRespository {
+export default class WilayaService extends WilayaRepository {
     private static _instance: WilayaService | null = null;
     private _wilayaRemote: WilayaRemote = new WilayaRemote();
 

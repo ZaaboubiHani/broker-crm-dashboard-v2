@@ -1,3 +1,3 @@
-export default abstract class ReportRespository {
+export default abstract class ReportRepository {
    
 }

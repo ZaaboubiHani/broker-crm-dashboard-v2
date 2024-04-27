@@ -1,10 +1,10 @@
 
 import UserModel from "../../domain/models/user.model";
-import AuthRespository from "../../domain/repositories/auth.repository";
+import AuthRepository from "../../domain/repositories/auth.repository";
 import AuthRemote from "../remotes/auth.remote";
 
 
-export default class AuthService extends AuthRespository {
+export default class AuthService extends AuthRepository {
 
     private static _instance: AuthService | null = null;
     private _authRemote: AuthRemote = new AuthRemote();

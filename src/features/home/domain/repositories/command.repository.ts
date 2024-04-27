@@ -1,3 +1,3 @@
-export default abstract class CommandRespository {
+export default abstract class CommandRepository {
    
 }

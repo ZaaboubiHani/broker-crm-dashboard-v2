@@ -1,3 +1,3 @@
-export default abstract class ClientRespository {
+export default abstract class ClientRepository {
    
 }

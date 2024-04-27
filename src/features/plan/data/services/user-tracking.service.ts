@@ -1,9 +1,9 @@
 import UserTrackingModel from "../../domain/models/user-tracking.model";
-import UserTrackingRespository from "../../domain/repositories/user-tracking.repository";
+import UserTrackingRepository from "../../domain/repositories/user-tracking.repository";
 import UserTrackingRemote from "../remotes/user-tracking.remote";
 
 
-export default class UserTrackingService extends UserTrackingRespository {
+export default class UserTrackingService extends UserTrackingRepository {
     private static _instance: UserTrackingService | null = null;
     private _userTrackingRemote?: UserTrackingRemote = new UserTrackingRemote();
 

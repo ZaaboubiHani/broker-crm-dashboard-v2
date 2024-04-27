@@ -1,9 +1,9 @@
 
 
-import StatisticsRespository from "../../domain/repositories/statistics.repository";
+import StatisticsRepository from "../../domain/repositories/statistics.repository";
 import StatisticsRemote from "../remotes/statistics.remote";
 
-export default class StatisticsService extends StatisticsRespository {
+export default class StatisticsService extends StatisticsRepository {
     private static _instance: StatisticsService | null = null;
     private _statisticsRemote?: StatisticsRemote = new StatisticsRemote();
 

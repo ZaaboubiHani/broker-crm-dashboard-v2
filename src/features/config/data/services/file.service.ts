@@ -1,9 +1,9 @@
 
-import FileRespository from "../../domain/repositories/file.repository";
+import FileRepository from "../../domain/repositories/file.repository";
 import FileRemote from "../remotes/file.remote";
 
 
-export default class FileService extends FileRespository {
+export default class FileService extends FileRepository {
     private static _instance: FileService | null = null;
     private _fileRemote?: FileRemote = new FileRemote();
 

@@ -1,10 +1,10 @@
 
 import CompanyModel from "../../domain/models/company.model";
-import CompanyRespository from "../../domain/repositories/company.repository";
+import CompanyRepository from "../../domain/repositories/company.repository";
 import CompanyRemote from "../remotes/company.remote";
 
 
-export default class CompanyService extends CompanyRespository {
+export default class CompanyService extends CompanyRepository {
     private static _instance: CompanyService | null = null;
     private _companyRemote?: CompanyRemote = new CompanyRemote();
 

@@ -1,9 +1,9 @@
 import ExpensesConfigModel from "../../domain/models/expenses-config.model";
-import ExpensesConfigRespository from "../../domain/repositories/expenses-config.repository";
+import ExpensesConfigRepository from "../../domain/repositories/expenses-config.repository";
 import ExpensesConfigRemote from "../remotes/expenses-config.remote";
 
 
-export default class ExpensesConfigService extends ExpensesConfigRespository {
+export default class ExpensesConfigService extends ExpensesConfigRepository {
     private static _instance: ExpensesConfigService | null = null;
     private _expensesConfigRemote?: ExpensesConfigRemote = new ExpensesConfigRemote();
 

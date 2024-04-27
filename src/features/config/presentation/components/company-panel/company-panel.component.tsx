@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import CircularProgress from '@mui/material/CircularProgress';
 import SaveIcon from '@mui/icons-material/Save';
 import TextField from '@mui/material/TextField';
 import CompanyModel from '../../../domain/models/company.model';

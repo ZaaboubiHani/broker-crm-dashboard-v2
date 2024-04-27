@@ -1,8 +1,8 @@
 import CommandModel from "../../domain/models/command.model";
-import CommandRespository from "../../domain/repositories/command.repository";
+import CommandRepository from "../../domain/repositories/command.repository";
 import CommandRemote from "../remotes/command.remote";
 
-export default class CommandService extends CommandRespository {
+export default class CommandService extends CommandRepository {
     private static _instance: CommandService | null = null;
     private _commandRemote?: CommandRemote = new CommandRemote();
 

@@ -1,8 +1,8 @@
 import VisitModel from "../../domain/models/visit.model";
-import VisitRespository from "../../domain/repositories/visit.repository";
+import VisitRepository from "../../domain/repositories/visit.repository";
 import VisitRemote from "../remotes/visit.remote";
 
-export default class VisitService extends VisitRespository {
+export default class VisitService extends VisitRepository {
     private static _instance: VisitService | null = null;
     private _visitRemote?: VisitRemote = new VisitRemote();
 

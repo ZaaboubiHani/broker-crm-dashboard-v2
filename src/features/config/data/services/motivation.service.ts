@@ -1,10 +1,10 @@
 
 import MotivationModel from "../../domain/models/motivation.model";
-import MotivationRespository from "../../domain/repositories/motivation.repository";
+import MotivationRepository from "../../domain/repositories/motivation.repository";
 import MotivationRemote from "../remotes/motivation.remote";
 
 
-export default class MotivationService extends MotivationRespository {
+export default class MotivationService extends MotivationRepository {
     private static _instance: MotivationService | null = null;
     private _motivationRemote?: MotivationRemote = new MotivationRemote();
 
@@ -31,13 +31,13 @@ export default class MotivationService extends MotivationRespository {
         let response = await this._motivationRemote!.updateMotivation(motivation);
         return response.data;
     }
-    async draftMotivation(motivationId: string): Promise<MotivationModel> {
-        let motivation = new MotivationModel({ _id: motivationId, isDrafted: true });
+    async draftMotivation(motivation: MotivationModel): Promise<MotivationModel> {
+        motivation.isDrafted = true;
         let response = await this._motivationRemote!.updateMotivation(motivation);
         return response.data;
     }
-    async undraftMotivation(motivationId: string): Promise<MotivationModel> {
-        let motivation = new MotivationModel({ _id: motivationId, isDrafted: false });
+    async undraftMotivation(motivation: MotivationModel): Promise<MotivationModel> {
+        motivation.isDrafted = false;
         let response = await this._motivationRemote!.updateMotivation(motivation);
         return response.data;
     }

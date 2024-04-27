@@ -1,8 +1,8 @@
 import ReportModel from "../../domain/models/report.model";
-import ReportRespository from "../../domain/repositories/report.repository";
+import ReportRepository from "../../domain/repositories/report.repository";
 import ReportRemote from "../remotes/report.remote";
 
-export default class ReportService extends ReportRespository {
+export default class ReportService extends ReportRepository {
     private static _instance: ReportService | null = null;
     private _reportRemote?: ReportRemote = new ReportRemote();
 

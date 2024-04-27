@@ -1,25 +1,10 @@
 import React, { Component } from 'react';
 import '../../presentation/pages/config-page.style.css';
 import { DotSpinner } from '@uiball/loaders';
-import Button from '@mui/material/Button/Button';
 import AddIcon from '@mui/icons-material/Add';
 import Divider from '@mui/material/Divider/Divider';
 import IconButton from '@mui/material/IconButton/IconButton';
-import TextField from '@mui/material/TextField/TextField';
-import Table from '@mui/material/Table/Table';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TableCell from '@mui/material/TableCell';
-import TableBody from '@mui/material/TableBody';
-import DeleteIcon from '@mui/icons-material/Delete';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
 import SaveIcon from '@mui/icons-material/Save';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import Snackbar from '@mui/material/Snackbar';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -29,12 +14,10 @@ import SpecialityModel from '../../domain/models/speciality.model';
 import MotivationModel from '../../domain/models/motivation.model';
 import CommentModel from '../../domain/models/comment.model';
 import ClientModel from '../../domain/models/client.model';
-import CoProductModel from '../../domain/models/co-product.model';
 import ProductModel from '../../domain/models/product.model';
 import WilayaModel from '../../domain/models/wilaya.model';
 import GoalModel from '../../domain/models/goal.model';
 import ExpensesConfigModel from '../../domain/models/expenses-config.model';
-import { NumericFormat, NumericFormatProps } from 'react-number-format';
 import CustomTabPanel from '../../../../core/components/custom-tab-panel/costum-tab-panel.component';
 import SpecialityTable from '../components/speciality-table/speciality-table.component';
 import CommentTable from '../components/comment-table/comment-table.component';
@@ -52,6 +35,21 @@ import ExpensesConfigService from '../../data/services/expenses-config.service';
 import MotivationPanel from '../components/motivation-panel/motivation-panel.component';
 import CommentService from '../../data/services/comment.service';
 import MotivationService from '../../data/services/motivation.service';
+import GoalTable from '../components/goal-table/goal-table.component';
+import GoalService from '../../data/services/goal.service';
+import MonthYearPicker from '../../../../core/components/month-year-picker/month-year-picker.component';
+import SpecialityService from '../../data/services/speciality.service';
+import { SpecialityType } from '../../../../core/entities/speciality.entity';
+import SpecialityTypeDropdown from '../components/speciality-type-dropdown/speciality-type-dropdown.component';
+import SpecialityDialog from '../components/speciality-dialog/speciality-dialog.component';
+import CommentDialog from '../components/comment-dialog/comment-dialog.component';
+import MotivationDialog from '../components/motivation-dialog/motivation-dialog.component';
+import ProductDialog from '../components/product-dialog/product-dialog.component';
+import ProductTable from '../components/product-table/product-table.component';
+import ProductTypeDropdown from '../components/product-type-dropdown/product-type-dropdown.component';
+import ProductService from '../../data/services/product.service';
+import { ProductType } from '../../../../core/entities/product.entity';
+import { ThirtyFpsSelect } from '@mui/icons-material';
 
 interface ConfigPageProps {
     currentUser: UserModel;
@@ -60,53 +58,56 @@ interface ConfigPageProps {
 interface ConfigPageState {
     company: CompanyModel;
     isLoading: boolean;
-    specialityName: string;
     loadingSpecialitiesData: boolean;
-    medicalSpecialities: SpecialityModel[];
-    draftedMedicalSpecialities: SpecialityModel[];
+    specialities: SpecialityModel[];
+    draftedSpecialities: SpecialityModel[];
+    selectedSpeciality?: SpecialityModel;
     loadingCommentsData: boolean;
     motivations: MotivationModel[];
     draftedMotivations: MotivationModel[];
     loadingMotivationsData: boolean;
     comments: CommentModel[];
     draftedComments: CommentModel[];
-    supplier: ClientModel;
-    product: ProductModel;
-    coproduct: CoProductModel;
+    selectedDate: Date;
+    selectedSpecialityType: SpecialityType;
+    selectedProductType: ProductType;
     suppliers: ClientModel[];
     draftedSuppliers: ClientModel[];
     products: ProductModel[];
-    coproducts: CoProductModel[];
     draftedProducts: ProductModel[];
-    draftedCoProducts: CoProductModel[];
     loadingSuppliersData: boolean;
     loadingProductsData: boolean;
     wilayas: WilayaModel[];
-    goals: GoalModel[];
+    userGoals: GoalModel[];
+    kamGoals: GoalModel[];
     selectedWilaya?: WilayaModel;
     expensesConfig: ExpensesConfigModel;
     showSnackbar: boolean;
     showDeleteSpecialityDialog: boolean;
+    showSpecialityDialog: boolean;
     showRestoreSpecialityDialog: boolean;
     showDeleteCommentDialog: boolean;
+    showCommentDialog: boolean;
     showRestoreCommentDialog: boolean;
     showDeleteMotivationDialog: boolean;
+    showMotivationDialog: boolean;
     showRestoreMotivationDialog: boolean;
     showDeleteSupplierDialog: boolean;
     showRestoreCoProductDialog: boolean;
     showRestoreSupplierDialog: boolean;
     showDeleteProductDialog: boolean;
+    showProductDialog: boolean;
     loadingCoProductsData: boolean;
     showRestoreProductDialog: boolean;
     showDeleteCoProductDialog: boolean;
     savingCompanyChanges: boolean;
+    savingGoalsChanges: boolean;
+    goalHasChanged: boolean;
     snackbarMessage: string;
-    selectedSpecialityId?: string;
-    selectedCommentId?: string;
-    selectedMotivationId?: string;
-    selectedSupplierId?: string;
-    selectedProductId?: string;
-    selectedCoProductId?: string;
+    selectedComment?: CommentModel;
+    selectedMotivation?: MotivationModel;
+    selectedSupplier?: ClientModel;
+    selectedProduct?: ProductModel;
     supplierPage: number;
     supplierSize: number;
     suppliersTotal: number;
@@ -114,44 +115,15 @@ interface ConfigPageState {
     subTabindex: number;
 }
 
-interface CustomProps {
-    onChange: (event: { target: { name: string; value: string } }) => void;
-    name: string;
-}
-
-const NumericFormatCustom = React.forwardRef<NumericFormatProps, CustomProps>(
-    function NumericFormatCustom(props, ref) {
-        const { onChange, ...other } = props;
-
-        return (
-            <NumericFormat
-                {...other}
-                getInputRef={ref}
-                onValueChange={(values: any) => {
-                    onChange({
-                        target: {
-                            name: props.name,
-                            value: values.value,
-                        },
-                    });
-                }}
-                thousandSeparator
-                valueIsNumericString
-                prefix="DA "
-            />
-        );
-    },
-);
 
 class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     constructor(props: any) {
         super(props);
         this.state = {
             isLoading: true,
-            specialityName: '',
             loadingSpecialitiesData: false,
-            medicalSpecialities: [],
-            draftedMedicalSpecialities: [],
+            specialities: [],
+            draftedSpecialities: [],
             draftedProducts: [],
             draftedSuppliers: [],
             loadingCommentsData: false,
@@ -159,22 +131,21 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             draftedComments: [],
             draftedMotivations: [],
             loadingMotivationsData: false,
+            showSpecialityDialog: false,
             motivations: [],
-            supplier: new ClientModel({}),
-            product: new ProductModel({}),
             company: new CompanyModel({}),
-            coproduct: new CoProductModel({}),
             suppliers: [],
             loadingSuppliersData: false,
             loadingProductsData: false,
             loadingCoProductsData: false,
             savingCompanyChanges: false,
+            savingGoalsChanges: false,
+            goalHasChanged: false,
             wilayas: [],
             products: [],
-            coproducts: [],
-            draftedCoProducts: [],
             expensesConfig: new ExpensesConfigModel({}),
-            goals: [],
+            userGoals: [],
+            kamGoals: [],
             showSnackbar: false,
             supplierPage: 1,
             supplierSize: 25,
@@ -183,42 +154,53 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             showRestoreSpecialityDialog: false,
             showDeleteCoProductDialog: false,
             showDeleteCommentDialog: false,
+            showCommentDialog: false,
             showRestoreCommentDialog: false,
             showDeleteMotivationDialog: false,
+            showMotivationDialog: false,
             showRestoreMotivationDialog: false,
             showDeleteSupplierDialog: false,
             showRestoreProductDialog: false,
+            showProductDialog: false,
             showRestoreCoProductDialog: false,
             showRestoreSupplierDialog: false,
             showDeleteProductDialog: false,
             snackbarMessage: '',
             mainTabindex: 0,
             subTabindex: 0,
+            selectedDate: new Date(),
+            selectedSpecialityType: SpecialityType.doctor,
+            selectedProductType: ProductType.regular,
         }
     }
     fileService = FileService.getInstance();
     companyService = CompanyService.getInstance();
     expensesConfigService = ExpensesConfigService.getInstance();
-    // specialityService = SpecialityService.getInstance();
+    specialityService = SpecialityService.getInstance();
     commentService = CommentService.getInstance();
     motivationService = MotivationService.getInstance();
     // supplierService = SupplierService.getInstance();
-    // wilayaService = WilayaService.getInstance();
-    // expenseService = ExpenseService.getInstance();
-    // goalService = GoalService.getInstance();
-    // userService = UserService.getInstance();
-    // productService = ProductService.getInstance();
+    goalService = GoalService.getInstance();
+    productService = ProductService.getInstance();
 
     loadConfigPageData = async () => {
         let company = await this.companyService.getSingleCompany();
         let expensesConfig = await this.expensesConfigService.getSingleExpensesConfig();
         let comments = await this.commentService.getAllComments();
         let motivations = await this.motivationService.getAllMotivations();
+        let kamGoals = await this.goalService.getGoals(new Date(), UserRole.kam);
+        let supGoals = await this.goalService.getGoals(new Date(), UserRole.supervisor);
+        let specialities = await this.specialityService.getSpecialities(SpecialityType.doctor, false);
+        let products = await this.productService.getProducts(ProductType.regular, false);
         this.setState({
             company: company,
             expensesConfig: expensesConfig,
             comments: comments,
             motivations: motivations,
+            userGoals: supGoals,
+            kamGoals: kamGoals,
+            specialities: specialities,
+            products: products,
         });
         // var { specialities, total: specialitiesTotal } = await this.specialityService.getAllMedicalSpecialities(this.state.specialityPage, this.state.specialitySize);
         // var draftedSpecialities = await this.specialityService.getAllDraftedMedicalSpecialities();
@@ -301,20 +283,53 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         // });
     }
 
-    handleCreateSpeciality = async () => {
-        // this.setState({ loadingSpecialitiesData: true });
-        // await this.specialityService.createMedicalSpeciality(this.state.specialityName);
-        // var { specialities, total: specialitiesTotal } = await this.specialityService.getAllMedicalSpecialities(this.state.specialityPage, this.state.specialitySize);
-        // this.setState({
-        //     loadingSpecialitiesData: false,
-        //     medicalSpecialities: specialities,
-        //     specialitiesTotal: specialitiesTotal,
-        //     specialityName: '',
-        // });
-        // this.setState({
-        //     showSnackbar: true,
-        //     snackbarMessage: 'Spécialité créé',
-        // });
+    handleCreateSpeciality = async (speciality: SpecialityModel) => {
+        this.setState({
+            loadingSpecialitiesData: true,
+            showSpecialityDialog: false
+        });
+        await this.specialityService.createSpeciality(speciality);
+        var specialities = await this.specialityService.getSpecialities(this.state.selectedSpecialityType, false);
+        this.setState({
+            loadingSpecialitiesData: false,
+            specialities: specialities,
+            showSnackbar: true,
+            snackbarMessage: 'Spécialité créé',
+        });
+    }
+
+    handleEditSpeciality = async (speciality: SpecialityModel) => {
+        this.setState({ loadingSpecialitiesData: true, showSpecialityDialog: false });
+        await this.specialityService.updateSpeciality(speciality);
+        var specialities = await this.specialityService.getSpecialities(this.state.selectedSpecialityType, false);
+        this.setState({
+            loadingSpecialitiesData: false,
+            specialities: specialities,
+            showSnackbar: true,
+            snackbarMessage: 'Spécialité modifié',
+        });
+    }
+    handleEditComment = async (comment: CommentModel) => {
+        this.setState({ loadingCommentsData: true, showCommentDialog: false });
+        await this.commentService.updateComment(comment);
+        var comments = await this.commentService.getAllComments();
+        this.setState({
+            loadingCommentsData: false,
+            comments: comments,
+            showSnackbar: true,
+            snackbarMessage: 'Commentaire modifié',
+        });
+    }
+    handleEditMotivation = async (motivation: MotivationModel) => {
+        this.setState({ loadingMotivationsData: true, showMotivationDialog: false });
+        await this.motivationService.updateMotivation(motivation);
+        var motivations = await this.motivationService.getAllMotivations();
+        this.setState({
+            loadingMotivationsData: false,
+            motivations: motivations,
+            showSnackbar: true,
+            snackbarMessage: 'Motivation modifié',
+        });
     }
 
     handleSpecialityPageChange = async (page: number, size: number) => {
@@ -329,8 +344,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         // });
     }
 
-
-
     handleSupplierPageChange = async (page: number, size: number) => {
         // this.setState({ loadingSuppliersData: true });
         // var { suppliers, total } = await this.supplierService.getSuppliersPaginated(page, size);
@@ -343,9 +356,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         // });
     }
 
-    handleSpecialityNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ specialityName: event.target.value });
-    }
 
     handleRemoveComment = async () => {
         // this.setState({ loadingCommentsData: true, showDeleteCommentDialog: false });
@@ -386,17 +396,16 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         });
     }
 
-
-
     handleRemoveMotivation = async () => {
         this.setState({ loadingMotivationsData: true, showDeleteMotivationDialog: false });
-        await this.motivationService.draftMotivation(this.state.selectedMotivationId!);
+        await this.motivationService.draftMotivation(this.state.selectedMotivation!);
         var motivations = await this.motivationService.getAllMotivations();
         var draftedMotivations = await this.motivationService.getAllDraftedMotivations();
         this.setState({
             loadingMotivationsData: false,
             motivations: motivations,
-            draftedMotivations: draftedMotivations
+            draftedMotivations: draftedMotivations,
+            selectedMotivation: undefined,
         });
         this.setState({ showSnackbar: true, snackbarMessage: 'Motivation supprimé' });
     }
@@ -434,20 +443,31 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         // this.setState({ showSnackbar: true, snackbarMessage: 'Fournisseur créé' });
     }
 
-    handleCreateProduct = async () => {
-        // this.setState({ loadingProductsData: true });
-        // await this.productService.createProduct(this.state.product);
-        // var prodcts = await this.productService.getAllProducts();
-        // this.setState({ loadingProductsData: false, products: prodcts, product: new ProductModel({}) });
-        // this.setState({ showSnackbar: true, snackbarMessage: 'Produit créé' });
+    handleCreateProduct = async (product: ProductModel) => {
+        this.setState({
+            loadingProductsData: true,
+            showProductDialog: false,
+        });
+        await this.productService.createProduct(product);
+        var prodcts = await this.productService.getProducts(this.state.selectedProductType, false);
+        this.setState({
+            loadingProductsData: false,
+            products: prodcts,
+            showSnackbar: true,
+            snackbarMessage: 'Produit créé'
+        });
     }
 
-    handleCreateCoProduct = async () => {
-        // this.setState({ loadingCoProductsData: true });
-        // await this.productService.createCoProduct(this.state.coproduct);
-        // var coprodcts = await this.productService.getAllCoProducts();
-        // this.setState({ loadingCoProductsData: false, coproducts: coprodcts, coproduct: new ProductModel({}) });
-        // this.setState({ showSnackbar: true, snackbarMessage: 'Produit concurrent créé' });
+    handleEditProduct = async (product: ProductModel) => {
+        this.setState({  loadingProductsData: true,
+            showProductDialog: false, });
+        await this.productService.updateProduct(product);
+        var prodcts = await this.productService.getProducts(this.state.selectedProductType, false);
+       
+        this.setState({  loadingProductsData: false,
+            products: prodcts,
+            showSnackbar: true,
+            snackbarMessage: 'Produit modifié' });
     }
 
     handleRemoveSupplier = async () => {
@@ -477,14 +497,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         // this.setState({ showSnackbar: true, snackbarMessage: 'Produit supprimé' });
     }
 
-    handleRemoveCoProduct = async () => {
-        // this.setState({ loadingCoProductsData: true, showDeleteCoProductDialog: false });
-        // await this.productService.draftCoProduct(this.state.selectedCoProductId);
-        // var coproducts = await this.productService.getAllCoProducts();
-        // var draftedCoProducts = await this.productService.getAllDraftedCoProducts();
-        // this.setState({ loadingCoProductsData: false, coproducts: coproducts, draftedCoProducts: draftedCoProducts });
-        // this.setState({ showSnackbar: true, snackbarMessage: 'Produit concurrent supprimé' });
-    }
 
     handleRestoreProduct = async () => {
         // this.setState({ loadingProductsData: true, showRestoreProductDialog: false });
@@ -494,24 +506,49 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         // this.setState({ loadingProductsData: false, products: products, draftedProducts: draftedProducts });
         // this.setState({ showSnackbar: true, snackbarMessage: 'Produit restauré' });
     }
-    handleRestoreCoProduct = async () => {
-        // this.setState({ loadingCoProductsData: true, showRestoreCoProductDialog: false });
-        // await this.productService.publishCoProduct(this.state.selectedCoProductId);
-        // var coproducts = await this.productService.getAllCoProducts();
-        // var draftedCoProducts = await this.productService.getAllDraftedCoProducts();
-        // this.setState({ loadingCoProductsData: false, coproducts: coproducts, draftedCoProducts: draftedCoProducts });
-        // this.setState({ showSnackbar: true, snackbarMessage: 'Produit concurrent restauré' });
-    }
 
     handleSaveGoalsChange = async () => {
-        // for (var goal of this.state.goals) {
-        //     await this.goalService.updateGoal(goal);
-        // }
-        // this.setState({ showSnackbar: true, snackbarMessage: 'Modifications d\'objectifs enregistrées' });
+        this.setState({ savingGoalsChanges: true })
+        let changedGoals = this.state.userGoals.filter((goal) => goal.hasChanged);
+        changedGoals = changedGoals.concat(this.state.kamGoals.filter((goal) => goal.hasChanged));
+        if (changedGoals.length > 0) {
+            this.goalService.updateGoals(changedGoals);
+            let kamGoals = await this.goalService.getGoals(this.state.selectedDate, UserRole.kam);
+            let supGoals = await this.goalService.getGoals(this.state.selectedDate, UserRole.supervisor);
+            this.setState({
+                showSnackbar: true,
+                snackbarMessage: 'Modifications d\'objectifs enregistrées',
+                userGoals: supGoals,
+                kamGoals: kamGoals,
+            });
+        }
+        this.setState({
+            savingGoalsChanges: false,
+        });
     }
 
     handleCloseSanckbar = (event: React.SyntheticEvent | Event, reason?: string) => {
         this.setState({ showSnackbar: false });
+    };
+
+    handleOnPickDate = async (date: Date) => {
+        this.setState({
+            savingGoalsChanges: true,
+            selectedDate: date
+        })
+        let changedGoals = this.state.userGoals.filter((goal) => goal.hasChanged);
+        changedGoals = changedGoals.concat(this.state.kamGoals.filter((goal) => goal.hasChanged));
+        if (changedGoals.length > 0) {
+            this.goalService.updateGoals(changedGoals);
+        }
+        let kamGoals = await this.goalService.getGoals(this.state.selectedDate, UserRole.kam);
+        let supGoals = await this.goalService.getGoals(this.state.selectedDate, UserRole.supervisor);
+
+        this.setState({
+            savingGoalsChanges: false,
+            userGoals: supGoals,
+            kamGoals: kamGoals,
+        });
     };
 
     handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -534,6 +571,19 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             expensesConfig: newExpensesConfig,
             savingCompanyChanges: false,
         });
+    };
+    handleSelectSpecialityType = async (type: SpecialityType) => {
+
+        this.setState({ loadingSpecialitiesData: true, selectedSpecialityType: type });
+        let specialities = await this.specialityService.getSpecialities(type, false);
+        this.setState({ loadingSpecialitiesData: false, specialities: specialities });
+
+    };
+    handleSelectProductType = async (type: ProductType) => {
+        this.setState({ loadingProductsData: true, selectedProductType: type });
+        let products = await this.productService.getProducts(type, false);
+        this.setState({ loadingProductsData: false, products: products });
+
     };
 
     componentDidMount(): void {
@@ -582,8 +632,9 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                     <Tabs value={this.state.subTabindex} onChange={this.handleSubTabChange} aria-label="basic tabs example">
                                         <Tab label="Entreprise" />
                                         <Tab label="Produits" />
-                                        <Tab label="Fournisseurs" />
+                                        <Tab label="Clients" />
                                         <Tab label="Commentaires et Motivations" />
+                                        <Tab label="Objectifs d'équipe" />
                                     </Tabs>
                                 </Box>
                                 <CustomTabPanel style={{
@@ -633,351 +684,42 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                     }
                                 </CustomTabPanel>
                                 <CustomTabPanel style={{
-
                                     flex: '1 1 auto',
                                 }} value={this.state.subTabindex} index={1} >
                                     <div className='config-container'>
-
-                                        <Divider component="div" style={{ margin: '0px 16px' }} sx={{ borderBottom: 'solid grey 1px' }} />
-
-                                        <Divider component="div" style={{ margin: '0px 16px' }} sx={{ borderBottom: 'solid grey 1px' }} />
-                                        <div style={{ width: '100%', display: 'flex', maxHeight: '450px' }}>
-                                            <div style={{ width: '40%', margin: '8px 0px 8px 8px', backgroundColor: 'white', borderRadius: '4px', padding: '16px' }}>
-                                                <h4>
-                                                    Configuration des produits
-                                                </h4>
-                                                <div style={{ display: 'flex', margin: '8px 0px' }}>
-                                                    <TextField value={this.state.product.name} onChange={(event) => {
-                                                        this.state.product.name = event.target.value;
-                                                    }} size="small" id="outlined-basic" label="Nom de produit" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                    <TextField
-                                                        value={this.state.product.ug}
-                                                        onChange={(event) => {
-                                                            this.state.product.ug = Number(event.target.value) ?? 0.0;
-                                                        }}
-                                                        type='number'
-                                                        size="small"
-                                                        label="UG"
-                                                        variant="outlined"
-                                                        sx={{
-                                                            backgroundColor: 'white',
-                                                            borderRadius: '4px',
-                                                            height: '40px',
-                                                            flexGrow: '1'
-                                                        }} />
-                                                </div>
-                                                <div style={{ display: 'flex', margin: '8px 0px' }}>
-                                                    <TextField value={this.state.product.remise} onChange={(event) => {
-                                                        this.state.product.remise = Number(event.target.value) ?? 0.0;
-                                                    }} type='number' size="small" id="outlined-basic" label="Remise" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-
-                                                    <TextField
-                                                        value={this.state.product.wholesalerPriceUnit} onChange={(event) => {
-                                                            this.state.product.wholesalerPriceUnit = Number(event.target.value) ?? 0;
-                                                        }}
-                                                        InputProps={{
-                                                            inputComponent: NumericFormatCustom as any,
-                                                        }}
-                                                        size="small"
-                                                        label="Grossiste prix unitaire"
-                                                        variant="outlined"
-                                                        sx={{ backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                </div>
-                                                <div style={{ display: 'flex', margin: '8px 0px' }}>
-                                                    <TextField value={this.state.product.pharmacyPriceUnit} onChange={(event) => {
-                                                        this.state.product.pharmacyPriceUnit = Number(event.target.value) ?? 0;
-                                                    }}
-                                                        InputProps={{
-                                                            inputComponent: NumericFormatCustom as any,
-                                                        }}
-                                                        size="small" id="outlined-basic" label="Pharmacie prix unitaire" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-
-                                                    <TextField value={this.state.product.superWholesalerPriceUnit} onChange={(event) => {
-                                                        this.state.product.superWholesalerPriceUnit = Number(event.target.value) ?? 0;
-                                                    }}
-                                                        InputProps={{
-                                                            inputComponent: NumericFormatCustom as any,
-                                                        }}
-                                                        size="small" label="Super grossiste prix unitaire" variant="outlined" sx={{ backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                </div>
-                                                <div style={{ display: 'flex', margin: '8px 0px 0px' }}>
-                                                    <TextField value={this.state.product.collision} onChange={(event) => {
-                                                        this.state.product.collision = Number(event.target.value) ?? 0;
-                                                    }} type='number' size="small" id="outlined-basic" label="Collisage" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                    <TextField value={this.state.product.collision} onChange={(event) => {
-                                                        this.state.product.PPA = Number(event.target.value) ?? 0.0;
-                                                    }}
-                                                        InputProps={{
-                                                            inputComponent: NumericFormatCustom as any,
-                                                        }}
-                                                        size="small" id="outlined-basic" label="PPA" variant="outlined" sx={{ backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                </div>
-                                                <div style={{ display: 'flex', margin: '16px 0px 16px 0px' }}>
-                                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                        <DatePicker value={this.state.product.DDP} onChange={(date) => {
-                                                            this.state.product.DDP = new Date(date!.toString());
-                                                        }} label="DDP" />
-                                                    </LocalizationProvider>
-                                                    <Button onClick={() => this.handleCreateProduct()} startIcon={<AddIcon />} sx={{ border: 'solid grey 1px', backgroundColor: 'white', borderRadius: '4px', marginLeft: '16px' }}>
-                                                        Ajouter
-                                                    </Button>
-                                                </div>
+                                        <div style={{ width: '100%', }}>
+                                            <div style={{
+                                                display: 'flex'
+                                            }}>
+                                                <ProductTypeDropdown
+                                                    onSelect={this.handleSelectProductType}
+                                                ></ProductTypeDropdown>
+                                                <IconButton onClick={() => {
+                                                    this.setState({ showProductDialog: true, selectedProduct: undefined });
+                                                }}
+                                                    sx={{
+                                                        marginLeft: '8px',
+                                                        border: 'solid grey 1px',
+                                                        backgroundColor: 'white',
+                                                        borderRadius: '4px',
+                                                        height: '40px',
+                                                        marginBottom: '8px'
+                                                    }}>
+                                                    <AddIcon />
+                                                </IconButton>
                                             </div>
-                                            <div style={{ width: '60%', display: 'flex', flexGrow: '1', padding: '8px 8px 0px 8px', marginBottom: '8px', maxHeight: '400px' }}>
-                                                <Table sx={{ flexGrow: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: '0px', width: "100%", borderRadius: '4px', }} aria-label="simple table">
-                                                    <TableHead sx={{ height: '45px', display: 'flex', width: '100%' }}>
-                                                        <TableRow sx={{ display: 'flex', width: '100%' }}>
-                                                            <TableCell sx={{ width: '50%' }} align="left">Nom de fournisseur</TableCell>
-                                                            <TableCell sx={{ width: '50%' }} align="left"> UG </TableCell>
-                                                            <TableCell sx={{ width: '50%' }} align="left">Prix grossiste</TableCell>
-                                                            <TableCell sx={{ width: '50%' }} align="right">Supprimer</TableCell>
-                                                        </TableRow>
-                                                    </TableHead>
-                                                    <TableBody sx={{ flexGrow: '1', overflowY: 'auto', overflowX: 'hidden', }}>
-                                                        {
-                                                            this.state.loadingProductsData ? (<div style={{
-                                                                width: '100%',
-                                                                flexGrow: '1',
-                                                                overflow: 'hidden',
-                                                                height: '100%',
-                                                                display: 'flex',
-                                                                justifyContent: 'center',
-                                                                alignItems: 'center',
-                                                            }}>
-                                                                <DotSpinner
-                                                                    size={40}
-                                                                    speed={0.9}
-                                                                    color="black"
-                                                                />
-                                                            </div>) :
-                                                                this.state.products.map((row) => (
-                                                                    <TableRow
-                                                                        key={row._id}
-                                                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                                    >
-                                                                        <TableCell sx={{ width: '32%' }} align="left">{row.name}</TableCell>
-                                                                        <TableCell sx={{ width: '32%' }} align="left">{row.ug}</TableCell>
-                                                                        <TableCell sx={{ width: '50%' }} align="left">{row.wholesalerPriceUnit}</TableCell>
-                                                                        <TableCell sx={{ padding: '0px 16px 0px 0px' }} align="right">
-                                                                            <IconButton onClick={() => {
-                                                                                this.setState({ showDeleteProductDialog: true, selectedProductId: row._id! });
-                                                                            }} >
-                                                                                <DeleteIcon />
-                                                                            </IconButton>
-                                                                        </TableCell>
-                                                                    </TableRow>
-                                                                ))}
-                                                    </TableBody>
-                                                </Table>
-                                            </div>
+                                            <ProductTable
+                                                id='ProductTable'
+                                                data={this.state.products}
+                                                onRemove={(product) => {
+                                                    this.setState({ showDeleteProductDialog: true, selectedProduct: product });
+                                                }}
+                                                onEdit={(product) => {
+                                                    this.setState({ showProductDialog: true, selectedProduct: product });
+                                                }}
+                                                isLoading={this.state.loadingProductsData}
+                                            ></ProductTable>
                                         </div>
-                                        <Divider component="div" style={{ margin: '0px 16px' }} sx={{ borderBottom: 'solid grey 1px' }} />
-                                        <div style={{ width: '100%', display: 'flex', maxHeight: '450px' }}>
-                                            <div style={{ width: '40%', margin: '8px 0px 8px 8px', backgroundColor: 'white', borderRadius: '4px', padding: '16px' }}>
-                                                <h4>
-                                                    Configuration des produits concurrents
-                                                </h4>
-                                                <div style={{ display: 'flex', margin: '8px 0px' }}>
-                                                    <TextField value={this.state.coproduct.name} onChange={(event) => {
-                                                        this.state.coproduct.name = event.target.value;
-                                                    }} size="small" id="outlined-basic" label="Nom de produit" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                    <TextField value={this.state.coproduct.ug} onChange={(event) => {
-                                                        this.state.coproduct.ug = parseInt(event.target.value);
-                                                    }} type='number' size="small" label="UG" variant="outlined" sx={{ backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                </div>
-                                                <div style={{ display: 'flex', margin: '8px 0px' }}>
-                                                    <TextField value={this.state.coproduct.remise} onChange={(event) => {
-                                                        this.state.coproduct.remise = parseInt(event.target.value);
-                                                    }} type='number' size="small" id="outlined-basic" label="Remise" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-
-                                                    <TextField value={this.state.coproduct.wholesalerPriceUnit} onChange={(event) => {
-                                                        this.state.coproduct.wholesalerPriceUnit = Number(event.target.value) ?? 0.0;
-                                                    }}
-                                                        InputProps={{
-                                                            inputComponent: NumericFormatCustom as any,
-                                                        }}
-                                                        size="small" label="Grossiste prix unitaire" variant="outlined" sx={{ backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                </div>
-                                                <div style={{ display: 'flex', margin: '8px 0px' }}>
-                                                    <TextField value={this.state.coproduct.pharmacyPriceUnit} onChange={(event) => {
-                                                        this.state.coproduct.pharmacyPriceUnit = Number(event.target.value) ?? 0.0;
-                                                    }}
-                                                        InputProps={{
-                                                            inputComponent: NumericFormatCustom as any,
-                                                        }} size="small" id="outlined-basic" label="Pharmacie prix unitaire" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-
-                                                    <TextField value={this.state.coproduct.superWholesalerPriceUnit} onChange={(event) => {
-                                                        this.state.coproduct.superWholesalerPriceUnit = Number(event.target.value) ?? 0.0;
-                                                    }}
-                                                        InputProps={{
-                                                            inputComponent: NumericFormatCustom as any,
-                                                        }} size="small" label="Super grossiste prix unitaire" variant="outlined" sx={{ backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                </div>
-                                                <div style={{ display: 'flex', margin: '8px 0px 0px' }}>
-                                                    <TextField value={this.state.coproduct.collision} onChange={(event) => {
-                                                        this.state.coproduct.collision = parseInt(event.target.value);
-                                                    }} type='number' size="small" id="outlined-basic" label="Collisage" variant="outlined" sx={{ backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-
-
-                                                </div>
-                                                <div style={{ display: 'flex', margin: '16px 0px 16px 0px' }}>
-                                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                        <DatePicker value={this.state.coproduct.DDP} onChange={(date) => {
-                                                            this.state.coproduct.DDP = date ?? undefined;
-                                                        }} label="DDP" />
-                                                    </LocalizationProvider>
-                                                    <Button onClick={() => this.handleCreateCoProduct()} startIcon={<AddIcon />} sx={{ border: 'solid grey 1px', backgroundColor: 'white', borderRadius: '4px', marginLeft: '16px' }}>
-                                                        Ajouter
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                            <div style={{ width: '60%', display: 'flex', flexGrow: '1', padding: '8px 8px 0px 8px', marginBottom: '8px', maxHeight: '400px' }}>
-                                                <Table sx={{ flexGrow: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: '0px', width: "100%", borderRadius: '4px', }} aria-label="simple table">
-                                                    <TableHead sx={{ height: '45px', display: 'flex', width: '100%' }}>
-                                                        <TableRow sx={{ display: 'flex', width: '100%' }}>
-                                                            <TableCell sx={{ width: '50%' }} align="left">Nom de fournisseur</TableCell>
-                                                            <TableCell sx={{ width: '50%' }} align="left">
-                                                                UG
-                                                            </TableCell>
-                                                            <TableCell sx={{ width: '50%' }} align="left">Prix grossiste</TableCell>
-                                                            <TableCell sx={{ width: '50%' }} align="right">Supprimer</TableCell>
-                                                        </TableRow>
-                                                    </TableHead>
-                                                    <TableBody sx={{ flexGrow: '1', overflowY: 'auto', overflowX: 'hidden', }}>
-                                                        {
-                                                            this.state.loadingCoProductsData ? (<div style={{
-                                                                width: '100%',
-                                                                flexGrow: '1',
-                                                                overflow: 'hidden',
-                                                                height: '100%',
-                                                                display: 'flex',
-                                                                justifyContent: 'center',
-                                                                alignItems: 'center',
-                                                            }}>
-                                                                <DotSpinner
-                                                                    size={40}
-                                                                    speed={0.9}
-                                                                    color="black"
-                                                                />
-                                                            </div>) :
-                                                                this.state.coproducts.map((row) => (
-                                                                    <TableRow
-                                                                        key={row._id}
-                                                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                                    >
-                                                                        <TableCell sx={{ width: '32%' }} align="left">{row.name}</TableCell>
-                                                                        <TableCell sx={{ width: '32%' }} align="left">{row.ug}</TableCell>
-                                                                        <TableCell sx={{ width: '50%' }} align="left">{row.wholesalerPriceUnit}</TableCell>
-                                                                        <TableCell sx={{ padding: '0px 16px 0px 0px' }} align="right">
-                                                                            <IconButton onClick={() => {
-                                                                                this.setState({ showDeleteCoProductDialog: true, selectedCoProductId: row._id! });
-                                                                            }} >
-                                                                                <DeleteIcon />
-                                                                            </IconButton>
-                                                                        </TableCell>
-                                                                    </TableRow>
-                                                                ))}
-                                                    </TableBody>
-                                                </Table>
-                                            </div>
-                                        </div>
-                                        {
-                                            this.props.currentUser
-                                                .role === UserRole.admin ? (
-                                                <div>
-                                                    <Divider component="div" style={{ margin: '0px 16px' }} sx={{ borderBottom: 'solid grey 1px' }} />
-                                                    <div style={{ width: '100%', maxHeight: '450px' }}>
-                                                        <div style={{ margin: '8px', backgroundColor: 'white', borderRadius: '4px', padding: '16px' }}>
-                                                            <h4>
-                                                                Configuration des notes des frais
-                                                            </h4>
-                                                            <div style={{ display: 'flex', marginTop: '8px' }}>
-                                                                <TextField value={this.state.expensesConfig.nightPrice} onChange={(event) => {
-                                                                    this.state.expensesConfig.nightPrice = Number(event.target.value) ?? 0.0;
-                                                                    this.setState({ expensesConfig: this.state.expensesConfig });
-                                                                }}
-                                                                    InputProps={{
-                                                                        inputComponent: NumericFormatCustom as any,
-                                                                    }}
-                                                                    size="small" id="outlined-basic" label="Prix de nuit" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                                <TextField value={this.state.expensesConfig.kmPrice} onChange={(event) => {
-                                                                    this.state.expensesConfig.kmPrice = Number(event.target.value) ?? 0.0;
-                                                                    this.setState({ expensesConfig: this.state.expensesConfig });
-                                                                }}
-                                                                    InputProps={{
-                                                                        inputComponent: NumericFormatCustom as any,
-                                                                    }}
-                                                                    size="small" id="outlined-basic" label="km Prix" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                              
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : null
-                                        }
-                                        <Divider component="div" style={{ margin: '0px 16px' }} sx={{ borderBottom: 'solid grey 1px' }} />
-                                        <div style={{ width: '100%', display: 'flex', flexGrow: '1', flexDirection: 'column', padding: '8px 0px 0px 8px', marginBottom: '8px', maxHeight: '400px' }}>
-                                            {/* <Table sx={{ flexGrow: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: '0px', width: "100%", borderRadius: '4px', }} aria-label="simple table">
-                                        <TableHead sx={{ height: '45px', display: 'flex', width: '100%' }}>
-                                            <TableRow sx={{ display: 'flex', width: '100%' }}>
-                                                <TableCell sx={{ width: '25%' }} align="left">Délégué</TableCell>
-                                                <TableCell sx={{ width: '55%' }} align="left">Objectifs de ventes</TableCell>
-                                                <TableCell sx={{ width: '55%' }} align="left">Objectifs de visites</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody sx={{ flexGrow: '1', overflowY: 'auto', overflowX: 'hidden', }}>
-                                        {
-                                            this.state.loadingSuppliersData ? (<div style={{
-                                                width: '100%',
-                                                flexGrow: '1',
-                                                overflow: 'hidden',
-                                                height: '100%',
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                }}>
-                                                    <DotSpinner
-                                                        size={40}
-                                                        speed={0.9}
-                                                        color="black"
-                                                    />
-                                                </div>) :
-                                                    this.state.goals.map((row) => (
-                                                        <TableRow
-                                                            key={row._id}
-                                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                        >
-                                                        <TableCell sx={{ width: '25%' }} align="left">{row.user?.username}</TableCell>
-                                                            <TableCell sx={{ width: '55%' }} align="left">
-                                                                <TextField value={row.totalSales} onChange={(event) => {
-                                                                    row.totalSales = parseInt(event.target.value);
-                                                                    this.setState({});
-                                                                }} type="number" size="small" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                            </TableCell>
-                                                            <TableCell sx={{ width: '55%' }} align="left">
-                                                                <TextField value={row.totalVisits} onChange={(event) => {
-                                                                    row.totalVisits = parseInt(event.target.value);
-                                                                    this.setState({});
-                                                                }}
-                                                                    name="numberformat"
-                                                                    id="formatted-numberformat-input"
-                                                                    type="number"
-                                                                    size="small"
-                                                                    variant="outlined"
-                                                                    sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                            </TableCell>
-
-
-                                                            </TableRow>
-                                                    ))}
-                                        </TableBody>
-                                    </Table> */}
-                                            <Button startIcon={<SaveIcon />} onClick={() => this.handleSaveGoalsChange()} sx={{ width: '350px', border: 'solid grey 1px', backgroundColor: 'white', borderRadius: '4px', height: '40px', margin: '8px' }}>
-                                                enregistrer les modifications
-                                            </Button>
-                                        </div>
-
-
                                     </div>
                                 </CustomTabPanel>
                                 <CustomTabPanel
@@ -988,126 +730,55 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                     <div style={{
                                         flex: '1 1 auto',
                                     }}>
-                                        <SupplierTable
-                                            isLoading={this.state.loadingSuppliersData}
-                                            data={this.state.suppliers}
-                                            page={this.state.supplierPage}
-                                            size={this.state.supplierSize}
-                                            total={this.state.suppliersTotal}
-                                            onRemove={(id) => {
-                                                this.setState({ showDeleteSupplierDialog: true, selectedSupplierId: id });
-                                            }}
-                                            pageChange={this.handleSupplierPageChange}
-                                        ></SupplierTable>
-                                        {/* <div style={{ width: '50%', margin: '8px 0px 8px 8px', backgroundColor: 'white', borderRadius: '4px', padding: '16px' }}>
-                                            <h4>
-                                                Configuration des fournisseurs
-                                            </h4>
-                                            <div style={{ display: 'flex', margin: '8px 0px' }}>
-                                                <TextField value={this.state.supplier.fullName} onChange={(event) => {
-                                                    this.state.supplier.fullName = event.target.value;
-                                                }} size="small" id="outlined-basic" label="Nom de fournisseur" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                                <TextField value={this.state.supplier.email} onChange={(event) => {
-                                                    this.state.supplier.email = event.target.value;
-                                                }} type='email' size="small" label="Adresse e-mail" variant="outlined" sx={{ backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                            </div>
-                                            <div style={{ display: 'flex', margin: '8px 0px' }}>
-                                                <TextField value={this.state.supplier.phoneNumberOne} onChange={(event) => {
-                                                    this.state.supplier.phoneNumberOne = event.target.value;
-                                                }} size="small" id="outlined-basic" label="Numéro de téléphone 1" variant="outlined" sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-
-                                                <TextField value={this.state.supplier.phoneNumberTwo} onChange={(event) => {
-                                                    this.state.supplier.phoneNumberTwo = event.target.value;
-                                                }} size="small" label="Numéro de téléphone 2" variant="outlined" sx={{ backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} />
-                                            </div>
-                                            <div style={{ display: 'flex', margin: '16px 0px' }}>
-                                                <FormControl sx={{ width: '50%', marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} size="small">
-                                                    <InputLabel id="demo-select-small-label">Wilaya</InputLabel>
-                                                    <Select
-                                                        value={this.state.supplier.wilaya}
-                                                        onChange={(event) => {
-                                                            // this.state.supplier.wilaya = event.target.value;
-                                                            // this.setState({
-                                                            //     selectedWilaya:
-                                                            //         event.target.value.length > 0 ?
-                                                            //             this.state.wilayas.find((e) => e.name === event.target.value)
-                                                            //             : undefined
-                                                            // });
-                                                        }}
-                                                    >
-                                                        <MenuItem value="">
-                                                            <em>None</em>
-                                                        </MenuItem>
-                                                        {
-                                                            this.state.wilayas.map((e) => (
-                                                                <MenuItem value={e.name}>{e.name}</MenuItem>
-                                                            ))
-                                                        }
-                                                    </Select>
-                                                </FormControl>
-                                                <FormControl sx={{ width: '50%', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} size="small">
-                                                    <InputLabel id="demo-select-small-label">Commune</InputLabel>
-                                                    <Select
-                                                        disabled={!this.state.selectedWilaya}
-                                                        value={this.state.supplier.commune}
-                                                        onChange={(event) => {
-                                                            this.state.supplier.commune = event.target.value;
-                                                        }}
-                                                    >
-                                                        <MenuItem value="">
-                                                            <em>None</em>
-                                                        </MenuItem>
-                                                        {
-                                                            this.state.selectedWilaya?.communes?.map((e) => (
-                                                                <MenuItem value={e}>{e}</MenuItem>
-                                                            ))
-                                                        }
-                                                    </Select>
-                                                </FormControl>
-                                            </div>
-
-                                            <div style={{ display: 'flex', margin: '16px 0px 0px 0px' }}>
-                                                <FormControl sx={{ marginRight: '16px', backgroundColor: 'white', borderRadius: '4px', height: '40px', flexGrow: '1' }} size="small">
-                                                    <InputLabel id="demo-select-small-label">Type</InputLabel>
-                                                    <Select
-                                                        value={this.state.supplier.type}
-                                                        onChange={(event) => {
-                                                            // this.state.supplier.type = event.target.value;
-                                                            // this.setState({ supplier: this.state.supplier });
+                                        <div style={{ width: '100%', display: 'flex', flexDirection: 'row', }}>
+                                            <div style={{ width: '30%', padding: '0px 8px' }}>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'row'
+                                                }}>
+                                                    <SpecialityTypeDropdown onSelect={this.handleSelectSpecialityType} />
+                                                    <IconButton onClick={() => {
+                                                        this.setState({ showSpecialityDialog: true, selectedSpeciality: undefined });
+                                                    }}
+                                                        sx={{
+                                                            marginLeft: '8px',
+                                                            border: 'solid grey 1px',
+                                                            backgroundColor: 'white',
+                                                            borderRadius: '4px',
+                                                            height: '40px',
                                                         }}>
-                                                        <MenuItem value={0}>Pharmacétique</MenuItem>
-                                                        <MenuItem value={1}>Parapharmacétique</MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                                <Button onClick={() => this.handleCreateSupplier()} startIcon={<AddIcon />} sx={{ border: 'solid grey 1px', backgroundColor: 'white', borderRadius: '4px', height: '40px', }}>
-                                                    Ajouter
-                                                </Button>
+                                                        <AddIcon />
+                                                    </IconButton>
+                                                </div>
+
+                                                <SpecialityTable
+                                                    isLoading={this.state.loadingSpecialitiesData}
+                                                    data={this.state.specialities}
+                                                    onRemove={(speciality) => {
+                                                        this.setState({ showDeleteSpecialityDialog: true, selectedSpeciality: speciality });
+                                                    }}
+                                                    onEdit={(speciality) => {
+                                                        this.setState({ showSpecialityDialog: true, selectedSpeciality: speciality });
+                                                    }}
+                                                />
+                                            </div>
+                                            <Divider orientation="vertical" flexItem component="div" style={{ width: '0.5%' }} sx={{ borderRight: 'solid grey 1px' }} />
+                                            <div style={{ width: '70%', padding: '0px 8px' }}>
+
+                                                <SupplierTable
+                                                    isLoading={this.state.loadingSuppliersData}
+                                                    data={this.state.suppliers}
+                                                    page={this.state.supplierPage}
+                                                    size={this.state.supplierSize}
+                                                    total={this.state.suppliersTotal}
+                                                    onRemove={(id) => {
+                                                        // this.setState({ showDeleteSupplierDialog: true, selectedSupplierId: id });
+                                                    }}
+                                                    pageChange={this.handleSupplierPageChange}
+                                                ></SupplierTable>
+
                                             </div>
                                         </div>
-                                        <div style={{
-                                            display: 'flex',
-                                            flexFlow: 'column',
-                                            flexDirection: 'column',
-                                            flex: '1',
-                                            alignItems: 'stretch',
-                                            width: '50%',
-                                            flexGrow: '1',
-                                            padding: '8px 8px 0px 8px',
-                                            marginBottom: '8px',
-                                            height: '100%'
-                                        }}>
-                                            <SupplierTable
-                                                isLoading={this.state.loadingSuppliersData}
-                                                data={this.state.suppliers}
-                                                page={this.state.supplierPage}
-                                                size={this.state.supplierSize}
-                                                total={this.state.suppliersTotal}
-                                                onRemove={(id) => {
-                                                    this.setState({ showDeleteSupplierDialog: true, selectedSupplierId: id });
-                                                }}
-                                                pageChange={this.handleSupplierPageChange}
-                                            ></SupplierTable>
-                                        </div> */}
                                     </div>
 
                                 </CustomTabPanel>
@@ -1123,48 +794,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                             width: '100%',
                                         }}>
                                             <div style={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
-                                                {/* <div style={{ display: 'flex', padding: '8px 8px 0px 8px', }}>
-                                                    <TextField
-                                                        value={this.state.specialityName}
-                                                        onChange={this.handleSpecialityNameChange}
-                                                        size="small"
-                                                        label="Nom de spécialité"
-                                                        variant="outlined"
-                                                        sx={{
-                                                            marginRight: '8px',
-                                                            backgroundColor: 'white',
-                                                            borderRadius: '4px',
-                                                            height: '40px',
-                                                            flex: '1',
-                                                        }} />
-                                                    <IconButton onClick={() => this.handleCreateSpeciality()} sx={{ border: 'solid grey 1px', backgroundColor: 'white', borderRadius: '4px', height: '40px', }}>
-                                                        <AddIcon />
-                                                    </IconButton>
-                                                </div>
-                                                <div style={{
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    flex: '1',
-                                                    alignItems: 'stretch',
-                                                    padding: '8px 8px 0px 8px',
-                                                    marginBottom: '8px',
-                                                    height: '392px',
-                                                }}>
-                                                    <SpecialityTable
-                                                        isLoading={this.state.loadingSpecialitiesData}
-                                                        data={this.state.medicalSpecialities}
-                                                        page={this.state.specialityPage}
-                                                        size={this.state.specialitySize}
-                                                        total={this.state.specialitiesTotal}
-                                                        onRemove={(id) => {
-                                                            this.setState({ showDeleteSpecialityDialog: true, selectedSpecialityId: id });
-                                                        }}
-                                                        pageChange={this.handleSpecialityPageChange}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <Divider orientation="vertical" flexItem component="div" style={{ width: '0.5%' }} sx={{ borderRight: 'solid grey 1px' }} />
-                                            <div style={{ width: '33%', display: 'flex', flexDirection: 'column' }}> */}
                                                 <CommentPanel
                                                     disabled={this.state.comments.length === 5}
                                                     onAdd={this.handleCreateComment}
@@ -1180,10 +809,10 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                                         isLoading={this.state.loadingCommentsData}
                                                         data={this.state.comments}
                                                         onEdit={(comment) => {
-
+                                                            this.setState({ showCommentDialog: true, selectedComment: comment });
                                                         }}
-                                                        onRemove={(id) => {
-                                                            this.setState({ showDeleteCommentDialog: true, selectedCommentId: id });
+                                                        onRemove={(comment) => {
+                                                            this.setState({ showDeleteCommentDialog: true, selectedComment: comment });
                                                         }}
                                                     />
                                                 </div>
@@ -1204,10 +833,10 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                                         isLoading={this.state.loadingMotivationsData}
                                                         data={this.state.motivations}
                                                         onEdit={(motivation) => {
-
+                                                            this.setState({ showMotivationDialog: true, selectedMotivation: motivation });
                                                         }}
-                                                        onRemove={(id) => {
-                                                            this.setState({ showDeleteMotivationDialog: true, selectedMotivationId: id });
+                                                        onRemove={(motivation) => {
+                                                            this.setState({ showDeleteMotivationDialog: true, selectedMotivation: motivation });
                                                         }}
 
                                                     />
@@ -1217,7 +846,76 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                     </div>
 
                                 </CustomTabPanel>
+                                <CustomTabPanel style={{
+                                    flex: '1 1 auto',
+                                }}
+                                    value={this.state.subTabindex}
+                                    index={4} >
+                                    <div style={{
+                                    }}>
+                                        <MonthYearPicker initialDate={this.state.selectedDate} onPick={this.handleOnPickDate}></MonthYearPicker >
+
+                                        <div style={{
+                                            display: 'flex',
+                                            width: '100%',
+                                        }}>
+                                            <div style={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
+
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    flex: '1',
+                                                    alignItems: 'stretch',
+                                                    padding: '8px 8px 0px 8px',
+                                                }}>
+                                                    <GoalTable
+                                                        isLoading={this.state.savingGoalsChanges}
+                                                        data={this.state.userGoals}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div style={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
+
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    flex: '1',
+                                                    alignItems: 'stretch',
+                                                    padding: '8px 8px 0px 8px',
+                                                }}>
+                                                    <GoalTable
+                                                        isLoading={this.state.savingGoalsChanges}
+                                                        data={this.state.kamGoals}
+
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <IconButton
+                                            onClick={this.handleSaveGoalsChange}
+                                            sx={{
+                                                marginLeft: '8px',
+                                                marginTop: '16px',
+                                                border: 'solid grey 1px',
+                                                backgroundColor: 'white',
+                                                borderRadius: '4px',
+                                                height: '40px',
+                                                fontSize: '16px',
+                                                width: '245px',
+                                                color: 'teal'
+                                            }}>
+                                            <SaveIcon />
+                                            Enregistrer les modifications
+                                        </IconButton>
+                                    </div>
+
+                                </CustomTabPanel>
                                 <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} onClose={this.handleCloseSanckbar} open={this.state.showSnackbar} autoHideDuration={3000} message={this.state.snackbarMessage} />
+                                <YesNoDialog onNo={() => {
+                                    this.setState({ showDeleteSpecialityDialog: false });
+                                }} onYes={() => this.handleRemoveSpeciality()} isOpen={this.state.showDeleteSpecialityDialog} onClose={() => {
+                                    this.setState({ showDeleteSpecialityDialog: false });
+                                }} message="Vous n'avez pas enregistré les modifications, voulez-vous continuer sans enregistrer?"></YesNoDialog>
                                 <YesNoDialog onNo={() => {
                                     this.setState({ showDeleteSpecialityDialog: false });
                                 }} onYes={() => this.handleRemoveSpeciality()} isOpen={this.state.showDeleteSpecialityDialog} onClose={() => {
@@ -1243,11 +941,41 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                 }} onYes={() => this.handleRemoveProduct()} isOpen={this.state.showDeleteProductDialog} onClose={() => {
                                     this.setState({ showDeleteProductDialog: false });
                                 }} message='Voulez-vous supprimer ce produit?'></YesNoDialog>
-                                <YesNoDialog onNo={() => {
-                                    this.setState({ showDeleteCoProductDialog: false });
-                                }} onYes={() => this.handleRemoveCoProduct()} isOpen={this.state.showDeleteCoProductDialog} onClose={() => {
-                                    this.setState({ showDeleteCoProductDialog: false });
-                                }} message='Voulez-vous supprimer  ce produit concurrent?'></YesNoDialog>
+                                <SpecialityDialog
+                                    isOpen={this.state.showSpecialityDialog}
+                                    initSpeciality={this.state.selectedSpeciality}
+                                    onClose={() => {
+                                        this.setState({ showSpecialityDialog: false, selectedSpeciality: undefined });
+                                    }}
+                                    initType={this.state.selectedSpecialityType}
+                                    onAdd={this.handleCreateSpeciality}
+                                    onEdit={this.handleEditSpeciality}
+                                ></SpecialityDialog>
+                                <CommentDialog
+                                    isOpen={this.state.showCommentDialog}
+                                    initComment={this.state.selectedComment!}
+                                    onClose={() => {
+                                        this.setState({ showCommentDialog: false, selectedComment: undefined });
+                                    }}
+                                    onEdit={this.handleEditComment}
+                                ></CommentDialog>
+                                <MotivationDialog
+                                    isOpen={this.state.showMotivationDialog}
+                                    initMotivation={this.state.selectedMotivation!}
+                                    onClose={() => {
+                                        this.setState({ showMotivationDialog: false, selectedMotivation: undefined });
+                                    }}
+                                    onEdit={this.handleEditMotivation}
+                                ></MotivationDialog>
+                                <ProductDialog
+                                    isOpen={this.state.showProductDialog}
+                                    initProduct={this.state.selectedProduct!}
+                                    onClose={() => {
+                                        this.setState({ showProductDialog: false, selectedProduct: undefined });
+                                    }}
+                                    onEdit={this.handleEditProduct}
+                                    onAdd={this.handleCreateProduct}
+                                ></ProductDialog>
                             </Box>
                         </CustomTabPanel>
                         {/* <CustomTabPanel style={{ display: 'flex', flexDirection: 'row', flexGrow: '1', height: 'calc(100% - 50px)', }} value={this.state.index} index={1} >

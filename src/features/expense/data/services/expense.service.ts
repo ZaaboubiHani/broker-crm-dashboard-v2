@@ -1,9 +1,9 @@
 import ExpenseDayModel from "../../domain/models/expense-day.model";
 import ExpenseUserModel from "../../domain/models/expense-user.model";
-import ExpenseRespository from "../../domain/repositories/expense.repository";
+import ExpenseRepository from "../../domain/repositories/expense.repository";
 import ExpenseRemote from "../remotes/expense.remote";
 
-export default class ExpenseService extends ExpenseRespository {
+export default class ExpenseService extends ExpenseRepository {
     private static _instance: ExpenseService | null = null;
     private _expenseRemote?: ExpenseRemote = new ExpenseRemote();
 

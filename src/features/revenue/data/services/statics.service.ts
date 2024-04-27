@@ -1,9 +1,9 @@
 
 import { UserRole } from "../../../../core/entities/user.entity";
-import RevenueStatisticsRespository from "../../domain/repositories/revenue-statistics.repository";
+import RevenueStatisticsRepository from "../../domain/repositories/revenue-statistics.repository";
 import RevenueStatisticsRemote from "../remotes/revenue-statistics.remote";
 
-export default class RevenueStatisticsService extends RevenueStatisticsRespository {
+export default class RevenueStatisticsService extends RevenueStatisticsRepository {
     private static _instance: RevenueStatisticsService | null = null;
     private _revenueStatisticsRemote?: RevenueStatisticsRemote = new RevenueStatisticsRemote();
 

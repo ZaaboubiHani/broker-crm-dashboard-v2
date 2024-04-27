@@ -1,9 +1,9 @@
 import { UserRole } from "../../../../core/entities/user.entity";
 import UserModel from "../../domain/models/user.model";
-import UserRespository from "../../domain/repositories/user.repository";
+import UserRepository from "../../domain/repositories/user.repository";
 import UserRemote from "../remotes/user.remote";
 
-export default class UserService extends UserRespository {
+export default class UserService extends UserRepository {
     private static _instance: UserService | null = null;
     private _userRemote?: UserRemote = new UserRemote();
 

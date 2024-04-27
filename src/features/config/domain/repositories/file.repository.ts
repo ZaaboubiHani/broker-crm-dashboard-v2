@@ -1,3 +1,3 @@
 
-export default abstract class FileRespository {
+export default abstract class FileRepository {
 }

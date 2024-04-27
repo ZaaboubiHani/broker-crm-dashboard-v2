@@ -1,9 +1,9 @@
 import { UserRole } from "../../../../core/entities/user.entity";
-import RevenueRespository from "../../domain/repositories/revenue.repository";
+import RevenueRepository from "../../domain/repositories/revenue.repository";
 import RevenueRemote from "../remotes/revenue.remote";
 
 
-export default class RevenueService extends RevenueRespository {
+export default class RevenueService extends RevenueRepository {
     private static _instance: RevenueService | null = null;
     private _revenueRemote?: RevenueRemote = new RevenueRemote();
 

@@ -1,4 +1,4 @@
 
 
-export default abstract class CommentRespository {
+export default abstract class CommentRepository {
 }

@@ -4,33 +4,23 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SpecialityModel from '../../../domain/models/speciality.model';
 import ScalableTable from '../../../../../core/components/scalable-table/scalable-table.component';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface SpecialityTableProps {
     data: SpecialityModel[];
     isLoading: boolean;
-    onRemove: (id: string) => void;
+    onEdit: (speciality: SpecialityModel) => void;
+    onRemove: (speciality: SpecialityModel) => void;
     id?: string;
-    page: number;
-    size: number;
-    total: number;
-    pageChange: (page: number, size: number) => void;
 }
 
-const SpecialityTable: React.FC<SpecialityTableProps> = ({ data, id, isLoading, onRemove, total, size, page, pageChange, }) => {
-
-    const [rowsPerPage, setRowsPerPage] = React.useState(size);
-
-    const [pageIndex, setPageIndex] = React.useState(page - 1);
-
-    if (pageIndex !== (page - 1)) {
-        setPageIndex(page - 1);
-    }
+const SpecialityTable: React.FC<SpecialityTableProps> = ({ data, id, isLoading, onRemove,onEdit }) => {
 
     return (
         <div id={id}
             style={{
                 borderRadius: '8px',
-                height: '400px',
+                height: 'calc(100vh - 180px)',
             }}>
             {
                 isLoading ? (<div style={{
@@ -65,11 +55,22 @@ const SpecialityTable: React.FC<SpecialityTableProps> = ({ data, id, isLoading, 
                                 headerName: 'Nom de spécialité',
                             },
                             {
+                                field: 'edit',
+                                headerName: 'Modifier',
+                                renderCell(params) {
+                                    return (<IconButton onClick={() => {
+                                        onEdit(params.row.model);
+                                    }} >
+                                        <EditIcon />
+                                    </IconButton>);
+                                },
+                            },
+                            {
                                 field: 'delete',
                                 headerName: 'Supprimer',
                                 renderCell(params) {
                                     return (<IconButton onClick={() => {
-                                        onRemove(params.row.id);
+                                        onRemove(params.row.model);
                                     }} >
                                         <DeleteIcon />
                                     </IconButton>);
@@ -77,21 +78,7 @@ const SpecialityTable: React.FC<SpecialityTableProps> = ({ data, id, isLoading, 
                             },
                         ]}
 
-                        total={total}
-
-                        onPaginationChange={(model) => {
-                            setPageIndex(model.page);
-                            pageChange(model.page + 1, model.size);
-                            setRowsPerPage(model.size);
-                        }}
-
-                        pagination={{
-                            size: rowsPerPage,
-                            page: pageIndex,
-                        }}
-
-                        pageSizeOptions={[5, 10, 25, 50, 100]}
-                        
+                        hidePaginationFooter={true}
                     />)}
         </div>
     );

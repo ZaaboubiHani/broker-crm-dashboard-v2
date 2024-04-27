@@ -1,4 +1,4 @@
 
 
-export default abstract class UserRespository {
+export default abstract class UserRepository {
 }

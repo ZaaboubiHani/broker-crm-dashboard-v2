@@ -9,7 +9,7 @@ import EditIcon from '@mui/icons-material/Edit';
 interface CommentTableProps {
     data: CommentModel[];
     isLoading: boolean;
-    onRemove: (id: string) => void;
+    onRemove: (comment: CommentModel) => void;
     onEdit: (comment: CommentModel) => void;
     id?: string;
 }
@@ -71,7 +71,7 @@ const CommentTable: React.FC<CommentTableProps> = ({ data, id, isLoading, onRemo
                                 headerName: 'Supprimer',
                                 renderCell(params) {
                                     return (<IconButton onClick={() => {
-                                        onRemove(params.row.id);
+                                        onRemove(params.row.model);
                                     }} >
                                         <DeleteIcon />
                                     </IconButton>);

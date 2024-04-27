@@ -1,2 +1,2 @@
-export default abstract class TaskRespository {
+export default abstract class TaskRepository {
 }

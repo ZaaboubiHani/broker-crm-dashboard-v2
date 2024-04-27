@@ -1,3 +1,3 @@
 
-export default abstract class UserTrackingRespository {
+export default abstract class UserTrackingRepository {
 }

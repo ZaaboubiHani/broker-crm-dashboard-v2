@@ -1,9 +1,16 @@
 
+export enum SpecialityType {
+    doctor = 'Doctor',
+    wholesaler = 'Wholesaler',
+    pharmacy = 'Pharmacy',
+}
+
 
 export default class SpecialityEntity {
     _id?: string;
     name?: string;
     isDrafted?: boolean;
+    type?: SpecialityType;
 
     constructor(data?: Partial<SpecialityEntity>) {
         if (data) {

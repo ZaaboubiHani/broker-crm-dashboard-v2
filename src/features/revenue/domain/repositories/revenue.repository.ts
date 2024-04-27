@@ -1,2 +1,2 @@
-export default abstract class RevenueRespository {
+export default abstract class RevenueRepository {
 }

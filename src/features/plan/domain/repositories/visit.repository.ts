@@ -1,6 +1,6 @@
 
 
 
-export default abstract class VisitRespository {
+export default abstract class VisitRepository {
    
 }

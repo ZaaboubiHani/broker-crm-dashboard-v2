@@ -1,3 +1,3 @@
-export default abstract class StatisticsRespository {
+export default abstract class StatisticsRepository {
    
 }

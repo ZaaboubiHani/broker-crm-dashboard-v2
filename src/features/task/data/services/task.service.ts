@@ -1,8 +1,8 @@
 import TaskModel from "../../domain/models/task.model";
-import TaskRespository from "../../domain/repositories/task.repository";
+import TaskRepository from "../../domain/repositories/task.repository";
 import TaskRemote from "../remotes/task.remote";
 
-export default class TaskService extends TaskRespository {
+export default class TaskService extends TaskRepository {
     private static _instance: TaskService | null = null;
     private _taskRemote?: TaskRemote = new TaskRemote();
 

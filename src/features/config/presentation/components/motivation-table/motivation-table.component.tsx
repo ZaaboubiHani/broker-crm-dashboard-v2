@@ -9,7 +9,7 @@ import EditIcon from '@mui/icons-material/Edit';
 interface MotivationTableProps {
     data: MotivationModel[];
     isLoading: boolean;
-    onRemove: (id: string) => void;
+    onRemove: (motivation: MotivationModel) => void;
     onEdit: (motivation: MotivationModel) => void;
     id?: string;
 }
@@ -70,7 +70,7 @@ const MotivationTable: React.FC<MotivationTableProps> = ({ data, id, isLoading, 
                                 headerName: 'Supprimer',
                                 renderCell(params) {
                                     return (<IconButton onClick={() => {
-                                        onRemove(params.row.id);
+                                        onRemove(params.row.model);
                                     }} >
                                         <DeleteIcon />
                                     </IconButton>);

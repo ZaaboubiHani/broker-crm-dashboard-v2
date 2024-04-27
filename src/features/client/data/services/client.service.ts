@@ -1,9 +1,9 @@
 import { ClientType } from "../../../../core/entities/client.entity";
 import ClientModel from "../../domain/models/client.model";
-import ClientRespository from "../../domain/repositories/client.repository";
+import ClientRepository from "../../domain/repositories/client.repository";
 import ClientRemote from "../remotes/client.remote";
 
-export default class ClientService extends ClientRespository {
+export default class ClientService extends ClientRepository {
     private static _instance: ClientService | null = null;
     private _clientRemote?: ClientRemote = new ClientRemote();
 

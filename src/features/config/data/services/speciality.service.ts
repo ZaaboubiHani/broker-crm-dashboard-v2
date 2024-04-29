@@ -31,4 +31,14 @@ export default class SpecialityService extends SpecialityRepository {
         let response = await this._specialityRemote!.createSpeciality(speciality);
         return response.data;
     }
+    async draftSpeciality(speciality: SpecialityModel): Promise<void> {
+        speciality.isDrafted = true;
+        let response = await this._specialityRemote!.updateSpeciality(speciality);
+        return response.data;
+    }
+    async undraftSpeciality(speciality: SpecialityModel): Promise<void> {
+        speciality.isDrafted = false;
+        let response = await this._specialityRemote!.updateSpeciality(speciality);
+        return response.data;
+    }
 }

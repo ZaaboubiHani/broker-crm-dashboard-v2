@@ -26,5 +26,14 @@ export default class ProductService extends ProductRepository {
         let response = await this._productRemote!.updateProduct(product);
         return response.data;
     }
-
+    async draftProduct(product: ProductModel): Promise<void> {
+        product.isDrafted = true;
+        let response = await this._productRemote!.updateProduct(product);
+        return response.data;
+    }
+    async undraftProduct(product: ProductModel): Promise<void> {
+        product.isDrafted = false;
+        let response = await this._productRemote!.updateProduct(product);
+        return response.data;
+    }
 }

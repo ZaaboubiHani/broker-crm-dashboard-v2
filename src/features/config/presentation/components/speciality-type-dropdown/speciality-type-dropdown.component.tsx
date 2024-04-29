@@ -7,11 +7,11 @@ import ListItemText from '@mui/material/ListItemText';
 import { SpecialityType } from '../../../../../core/entities/speciality.entity';
 
 interface SpecialityTypeDropdownProps {
+    initType: SpecialityType;
     onSelect: (type: SpecialityType) => void;
 }
 
-const SpecialityTypeDropdown: React.FC<SpecialityTypeDropdownProps> = ({ onSelect,  }) => {
-    const [type, setType] = React.useState(SpecialityType.doctor);
+const SpecialityTypeDropdown: React.FC<SpecialityTypeDropdownProps> = ({ initType, onSelect, }) => {
     return (
         <FormControl fullWidth sx={{
             height: '40px',
@@ -25,9 +25,8 @@ const SpecialityTypeDropdown: React.FC<SpecialityTypeDropdownProps> = ({ onSelec
                 sx={{
                     height: '40px'
                 }}
-                defaultValue={type}
+                defaultValue={initType}
                 onChange={async (event) => {
-                    setType(event.target.value as SpecialityType);
                     onSelect(event.target.value as SpecialityType);
                 }}>
                 <MenuItem key={1} value={SpecialityType.doctor}>

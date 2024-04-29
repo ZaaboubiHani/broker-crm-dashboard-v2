@@ -6,6 +6,7 @@ export default class EstablishmentEntity {
     name?: string;
     wilaya?: string;
     commune?: string;
+    isDrafted?: boolean;
     services?: ServiceEntity[];
 
     constructor(data?: Partial<EstablishmentEntity>) {

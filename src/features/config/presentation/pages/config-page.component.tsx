@@ -50,6 +50,16 @@ import ProductTypeDropdown from '../components/product-type-dropdown/product-typ
 import ProductService from '../../data/services/product.service';
 import { ProductType } from '../../../../core/entities/product.entity';
 import { ThirtyFpsSelect } from '@mui/icons-material';
+import DraftedProductTable from '../components/drafted-product-table/drafted-product-table.component';
+import DraftedCommentTable from '../components/drafted-comment-table/drafted-comment-table.component';
+import DraftedMotivationTable from '../components/drafted-motivation-table/drafted-motivation-table.component';
+import DraftedSpecialityTable from '../components/drafted-speciality-table/drafted-speciality-table.component';
+import EstablishmentModel from '../../domain/models/establishment.model';
+import EstablishmentService from '../../data/services/establishment.service';
+import EstablishmentTable from '../components/establishment-table/establishment-table.component';
+import EstablishmentDialog from '../components/establishment-dialog/establishment-dialog.component';
+import WilayaService from '../../data/services/wilaya.service';
+import DraftedEstablishmentTable from '../components/drafted-establishment-table/drafted-establishment-table.component';
 
 interface ConfigPageProps {
     currentUser: UserModel;
@@ -62,6 +72,7 @@ interface ConfigPageState {
     specialities: SpecialityModel[];
     draftedSpecialities: SpecialityModel[];
     selectedSpeciality?: SpecialityModel;
+    selectedEstablishment?: EstablishmentModel;
     loadingCommentsData: boolean;
     motivations: MotivationModel[];
     draftedMotivations: MotivationModel[];
@@ -75,8 +86,11 @@ interface ConfigPageState {
     draftedSuppliers: ClientModel[];
     products: ProductModel[];
     draftedProducts: ProductModel[];
+    establishments: EstablishmentModel[];
+    draftedEstablishments: EstablishmentModel[];
     loadingSuppliersData: boolean;
     loadingProductsData: boolean;
+    loadingEstablishmentsData: boolean;
     wilayas: WilayaModel[];
     userGoals: GoalModel[];
     kamGoals: GoalModel[];
@@ -88,18 +102,18 @@ interface ConfigPageState {
     showRestoreSpecialityDialog: boolean;
     showDeleteCommentDialog: boolean;
     showCommentDialog: boolean;
+    showEstablishmentDialog: boolean;
     showRestoreCommentDialog: boolean;
     showDeleteMotivationDialog: boolean;
     showMotivationDialog: boolean;
     showRestoreMotivationDialog: boolean;
+    showRestoreEstablishmentDialog: boolean;
     showDeleteSupplierDialog: boolean;
-    showRestoreCoProductDialog: boolean;
+    showDeleteEstablishmentDialog: boolean;
     showRestoreSupplierDialog: boolean;
     showDeleteProductDialog: boolean;
     showProductDialog: boolean;
-    loadingCoProductsData: boolean;
     showRestoreProductDialog: boolean;
-    showDeleteCoProductDialog: boolean;
     savingCompanyChanges: boolean;
     savingGoalsChanges: boolean;
     goalHasChanged: boolean;
@@ -122,6 +136,8 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         this.state = {
             isLoading: true,
             loadingSpecialitiesData: false,
+            establishments: [],
+            draftedEstablishments: [],
             specialities: [],
             draftedSpecialities: [],
             draftedProducts: [],
@@ -137,7 +153,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             suppliers: [],
             loadingSuppliersData: false,
             loadingProductsData: false,
-            loadingCoProductsData: false,
+            loadingEstablishmentsData: false,
             savingCompanyChanges: false,
             savingGoalsChanges: false,
             goalHasChanged: false,
@@ -152,7 +168,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             suppliersTotal: 0,
             showDeleteSpecialityDialog: false,
             showRestoreSpecialityDialog: false,
-            showDeleteCoProductDialog: false,
             showDeleteCommentDialog: false,
             showCommentDialog: false,
             showRestoreCommentDialog: false,
@@ -162,9 +177,11 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             showDeleteSupplierDialog: false,
             showRestoreProductDialog: false,
             showProductDialog: false,
-            showRestoreCoProductDialog: false,
             showRestoreSupplierDialog: false,
             showDeleteProductDialog: false,
+            showEstablishmentDialog: false,
+            showDeleteEstablishmentDialog: false,
+            showRestoreEstablishmentDialog: false,
             snackbarMessage: '',
             mainTabindex: 0,
             subTabindex: 0,
@@ -182,18 +199,29 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     // supplierService = SupplierService.getInstance();
     goalService = GoalService.getInstance();
     productService = ProductService.getInstance();
+    establishmentService = EstablishmentService.getInstance();
+    wilayaService = WilayaService.getInstance();
 
     loadConfigPageData = async () => {
         let company = await this.companyService.getSingleCompany();
         let expensesConfig = await this.expensesConfigService.getSingleExpensesConfig();
         let comments = await this.commentService.getAllComments();
+        let draftedComments = await this.commentService.getAllDraftedComments();
         let motivations = await this.motivationService.getAllMotivations();
+        let draftedMotivations = await this.motivationService.getAllDraftedMotivations();
         let kamGoals = await this.goalService.getGoals(new Date(), UserRole.kam);
         let supGoals = await this.goalService.getGoals(new Date(), UserRole.supervisor);
         let specialities = await this.specialityService.getSpecialities(SpecialityType.doctor, false);
+        let draftedSpecialities = await this.specialityService.getSpecialities(SpecialityType.doctor, true);
         let products = await this.productService.getProducts(ProductType.regular, false);
+        let draftedProducts = await this.productService.getProducts(ProductType.regular, true);
+        let establishments = await this.establishmentService.getEstablishments(false);
+        let draftedEstablishments = await this.establishmentService.getEstablishments(true);
+        let wilayas = await this.wilayaService.getAllWilayas();
+
         this.setState({
             company: company,
+            wilayas: wilayas,
             expensesConfig: expensesConfig,
             comments: comments,
             motivations: motivations,
@@ -201,6 +229,12 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             kamGoals: kamGoals,
             specialities: specialities,
             products: products,
+            draftedProducts: draftedProducts,
+            draftedComments: draftedComments,
+            draftedMotivations: draftedMotivations,
+            draftedSpecialities: draftedSpecialities,
+            establishments: establishments,
+            draftedEstablishments: draftedEstablishments,
         });
         // var { specialities, total: specialitiesTotal } = await this.specialityService.getAllMedicalSpecialities(this.state.specialityPage, this.state.specialitySize);
         // var draftedSpecialities = await this.specialityService.getAllDraftedMedicalSpecialities();
@@ -216,8 +250,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         // var goals = await this.goalService.getAllGoalsOfUserByDateMoth(new Date(), currentUser.id!);
         // var products = await this.productService.getAllProducts();
         // var draftedProducts = await this.productService.getAllDraftedProducts();
-        // var coproducts = await this.productService.getAllCoProducts();
-        // var draftedCoProducts = await this.productService.getAllDraftedCoProducts();
         // if (!expensesConfig) {
         //     expensesConfig = await this.expenseService.createExpensesConfig();
         // }
@@ -242,7 +274,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         //     goals: goals,
         //     products: products,
         //     coproducts: coproducts,
-        //     draftedCoProducts: draftedCoProducts,
         // });
         this.setState({
             isLoading: false,
@@ -251,19 +282,17 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     }
 
     handleRemoveSpeciality = async () => {
-        // this.setState({ loadingSpecialitiesData: true, showDeleteSpecialityDialog: false });
-        // await this.specialityService.draftMedicalSpeciality(this.state.selectedSpecialityId);
-        // var { specialities, total: specialitiesTotal } = await this.specialityService.getAllMedicalSpecialities(this.state.specialityPage, this.state.specialitySize);
-        // var draftedSpecialities = await this.specialityService.getAllDraftedMedicalSpecialities();
-        // this.setState({
-        //     loadingSpecialitiesData: false,
-        //     medicalSpecialities: specialities,
-        //     draftedMedicalSpecialities: draftedSpecialities,
-        // });
-        // this.setState({
-        //     showSnackbar: true,
-        //     snackbarMessage: 'Spécialité supprimé',
-        // });
+        this.setState({ loadingSpecialitiesData: true, showDeleteSpecialityDialog: false });
+        await this.specialityService.draftSpeciality(this.state.selectedSpeciality!);
+        var specialities = await this.specialityService.getSpecialities(this.state.selectedSpecialityType, false);
+        var draftedSpecialities = await this.specialityService.getSpecialities(this.state.selectedSpecialityType, true);
+        this.setState({
+            loadingSpecialitiesData: false,
+            specialities: specialities,
+            draftedSpecialities: draftedSpecialities,
+            showSnackbar: true,
+            snackbarMessage: 'Spécialité supprimé',
+        });
     }
 
     handleRestoreSpeciality = async () => {
@@ -309,6 +338,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             snackbarMessage: 'Spécialité modifié',
         });
     }
+
     handleEditComment = async (comment: CommentModel) => {
         this.setState({ loadingCommentsData: true, showCommentDialog: false });
         await this.commentService.updateComment(comment);
@@ -320,6 +350,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             snackbarMessage: 'Commentaire modifié',
         });
     }
+
     handleEditMotivation = async (motivation: MotivationModel) => {
         this.setState({ loadingMotivationsData: true, showMotivationDialog: false });
         await this.motivationService.updateMotivation(motivation);
@@ -330,18 +361,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             showSnackbar: true,
             snackbarMessage: 'Motivation modifié',
         });
-    }
-
-    handleSpecialityPageChange = async (page: number, size: number) => {
-        // this.setState({ loadingSpecialitiesData: true });
-        // var { specialities, total: specialitiesTotal } = await this.specialityService.getAllMedicalSpecialities(page, size);
-        // this.setState({
-        //     loadingSpecialitiesData: false,
-        //     specialitiesTotal: specialitiesTotal,
-        //     medicalSpecialities: specialities,
-        //     specialityPage: page,
-        //     specialitySize: size,
-        // });
     }
 
     handleSupplierPageChange = async (page: number, size: number) => {
@@ -356,30 +375,43 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         // });
     }
 
-
     handleRemoveComment = async () => {
-        // this.setState({ loadingCommentsData: true, showDeleteCommentDialog: false });
-        // await this.commentService.draftComment(this.state.selectedCommentId);
-        // var { comments, total } = await this.commentService.getAllComments(this.state.commentPage, this.state.commentSize);
-        // var draftedComments = await this.commentService.getDraftedComments();
-        // this.setState({ loadingCommentsData: false, comments: comments, commentsTotal: total, draftedComments: draftedComments });
-        // this.setState({ showSnackbar: true, snackbarMessage: 'Commentaire supprimé' });
+        this.setState({ loadingCommentsData: true, showDeleteCommentDialog: false });
+        await this.commentService.draftComment(this.state.selectedComment!);
+        var comments = await this.commentService.getAllComments();
+        var draftedComments = await this.commentService.getAllDraftedComments();
+        this.setState({
+            loadingCommentsData: false,
+            comments: comments,
+            draftedComments: draftedComments,
+            showSnackbar: true,
+            snackbarMessage: 'Commentaire supprimé'
+        });
     }
 
     handleRestoreComment = async () => {
-        // this.setState({ loadingCommentsData: true, showRestoreCommentDialog: false });
-        // if (this.state.comments.length < 5) {
-        //     await this.commentService.publishComment(this.state.selectedCommentId);
-        //     var { comments, total } = await this.commentService.getAllComments(this.state.commentPage, this.state.commentSize);
-        //     var draftedComments = await this.commentService.getDraftedComments();
-        //     this.setState({ loadingCommentsData: false, comments: comments, commentsTotal: total, draftedComments: draftedComments });
-        //     this.setState({ showSnackbar: true, snackbarMessage: 'Commentaire restauré' });
-        // } else {
-        //     var { comments, total } = await this.commentService.getAllComments(this.state.commentPage, this.state.commentSize);
-        //     var draftedComments = await this.commentService.getDraftedComments();
-        //     this.setState({ loadingCommentsData: false, comments: comments, commentsTotal: total, draftedComments: draftedComments });
-        //     this.setState({ showSnackbar: true, snackbarMessage: 'Nombre de commentaires dépassés, veuillez supprimer un commentaire puis réessayer' });
-        // }
+        this.setState({
+            loadingCommentsData: true,
+            showRestoreCommentDialog: false
+        });
+        if (this.state.comments.length < 5) {
+            await this.commentService.undraftComment(this.state.selectedComment!);
+            var comments = await this.commentService.getAllComments();
+            var draftedComments = await this.commentService.getAllDraftedComments();
+            this.setState({
+                loadingCommentsData: false,
+                comments: comments,
+                draftedComments: draftedComments,
+                showSnackbar: true,
+                snackbarMessage: 'Commentaire restauré'
+            });
+        } else {
+            this.setState({
+                loadingCommentsData: false,
+                showSnackbar: true,
+                snackbarMessage: 'Nombre de commentaires dépassés, veuillez supprimer un commentaire puis réessayer'
+            });
+        }
     }
 
     handleCreateComment = async (content: string) => {
@@ -411,12 +443,20 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     }
 
     handleRestoreMotivation = async () => {
-        // this.setState({ loadingMotivationsData: true, showRestoreMotivationDialog: false });
-        // await this.motivationService.publishMotivation(this.state.selectedMotivationId);
-        // var { motivations, total } = await this.motivationService.getAllMotivations(this.state.motivationPage, this.state.motivationSize);
-        // var draftedMotivations = await this.motivationService.getAllDraftedMotivations();
-        // this.setState({ loadingMotivationsData: false, motivations: motivations, motivationsTotal: total, draftedMotivations: draftedMotivations });
-        // this.setState({ showSnackbar: true, snackbarMessage: 'Motivation restauré' });
+        this.setState({
+            loadingMotivationsData: true,
+            showRestoreMotivationDialog: false
+        });
+        await this.motivationService.undraftMotivation(this.state.selectedMotivation!);
+        var motivations = await this.motivationService.getAllMotivations();
+        var draftedMotivations = await this.motivationService.getAllDraftedMotivations();
+        this.setState({
+            loadingMotivationsData: false,
+            motivations: motivations,
+            draftedMotivations: draftedMotivations,
+            showSnackbar: true,
+            snackbarMessage: 'Motivation restauré'
+        });
     }
 
     handleCreateMotivation = async (content: string) => {
@@ -432,8 +472,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
             snackbarMessage: 'Motivation créé'
         });
     }
-
-
 
     handleCreateSupplier = async () => {
         // this.setState({ loadingSuppliersData: true });
@@ -459,15 +497,19 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     }
 
     handleEditProduct = async (product: ProductModel) => {
-        this.setState({  loadingProductsData: true,
-            showProductDialog: false, });
+        this.setState({
+            loadingProductsData: true,
+            showProductDialog: false,
+        });
         await this.productService.updateProduct(product);
         var prodcts = await this.productService.getProducts(this.state.selectedProductType, false);
-       
-        this.setState({  loadingProductsData: false,
+
+        this.setState({
+            loadingProductsData: false,
             products: prodcts,
             showSnackbar: true,
-            snackbarMessage: 'Produit modifié' });
+            snackbarMessage: 'Produit modifié'
+        });
     }
 
     handleRemoveSupplier = async () => {
@@ -489,22 +531,35 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     }
 
     handleRemoveProduct = async () => {
-        // this.setState({ loadingProductsData: true, showDeleteProductDialog: false });
-        // await this.productService.draftProduct(this.state.selectedProductId);
-        // var products = await this.productService.getAllProducts();
-        // var draftedProducts = await this.productService.getAllDraftedProducts();
-        // this.setState({ loadingProductsData: false, products: products, draftedProducts: draftedProducts });
-        // this.setState({ showSnackbar: true, snackbarMessage: 'Produit supprimé' });
+        this.setState({ loadingProductsData: true, showDeleteProductDialog: false });
+        await this.productService.draftProduct(this.state.selectedProduct!);
+        var products = await this.productService.getProducts(this.state.selectedProductType, false);
+        var draftedProducts = await this.productService.getProducts(this.state.selectedProductType, true);
+        this.setState({
+            loadingProductsData: false,
+            products: products,
+            draftedProducts: draftedProducts,
+            showSnackbar: true,
+            snackbarMessage: 'Produit supprimé',
+        });
     }
 
 
     handleRestoreProduct = async () => {
-        // this.setState({ loadingProductsData: true, showRestoreProductDialog: false });
-        // await this.productService.publishProduct(this.state.selectedProductId);
-        // var products = await this.productService.getAllProducts();
-        // var draftedProducts = await this.productService.getAllDraftedProducts();
-        // this.setState({ loadingProductsData: false, products: products, draftedProducts: draftedProducts });
-        // this.setState({ showSnackbar: true, snackbarMessage: 'Produit restauré' });
+        this.setState({
+            loadingProductsData: true,
+            showRestoreProductDialog: false
+        });
+        await this.productService.undraftProduct(this.state.selectedProduct!);
+        var products = await this.productService.getProducts(this.state.selectedProductType, false);
+        var draftedProducts = await this.productService.getProducts(this.state.selectedProductType, true);
+        this.setState({
+            loadingProductsData: false,
+            products: products,
+            draftedProducts: draftedProducts,
+            showSnackbar: true,
+            snackbarMessage: 'Produit restauré',
+        });
     }
 
     handleSaveGoalsChange = async () => {
@@ -552,7 +607,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     };
 
     handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        this.setState({ mainTabindex: newValue });
+        this.setState({ mainTabindex: newValue, subTabindex: 0 });
     };
     handleSubTabChange = (event: React.SyntheticEvent, newValue: number) => {
         this.setState({ subTabindex: newValue });
@@ -573,16 +628,89 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
         });
     };
     handleSelectSpecialityType = async (type: SpecialityType) => {
-
         this.setState({ loadingSpecialitiesData: true, selectedSpecialityType: type });
         let specialities = await this.specialityService.getSpecialities(type, false);
-        this.setState({ loadingSpecialitiesData: false, specialities: specialities });
+        let draftedSpecialities = await this.specialityService.getSpecialities(type, true);
+        this.setState({
+            loadingSpecialitiesData: false,
+            specialities: specialities,
+            draftedSpecialities: draftedSpecialities,
+        });
 
     };
     handleSelectProductType = async (type: ProductType) => {
         this.setState({ loadingProductsData: true, selectedProductType: type });
         let products = await this.productService.getProducts(type, false);
-        this.setState({ loadingProductsData: false, products: products });
+        let draftedProducts = await this.productService.getProducts(type, true);
+        this.setState({
+            loadingProductsData: false,
+            products: products,
+            draftedProducts: draftedProducts,
+        });
+
+    };
+
+    handleCreateEstablishment = async (establishment: EstablishmentModel) => {
+        this.setState({
+            loadingEstablishmentsData: true,
+            showEstablishmentDialog: false,
+        });
+        await this.establishmentService.createEstablishment(establishment);
+        let establishments = await this.establishmentService.getEstablishments(false);
+        let draftedEstablishments = await this.establishmentService.getEstablishments(true);
+        this.setState({
+            loadingEstablishmentsData: false,
+            establishments: establishments,
+            draftedEstablishments: draftedEstablishments,
+        });
+
+    };
+    handleEditEstablishment = async (establishment: EstablishmentModel) => {
+        this.setState({
+            loadingEstablishmentsData: true,
+            showEstablishmentDialog: false,
+        });
+        await this.establishmentService.updateEstablishment(establishment);
+        let establishments = await this.establishmentService.getEstablishments(false);
+        let draftedEstablishments = await this.establishmentService.getEstablishments(true);
+        this.setState({
+            loadingEstablishmentsData: false,
+            establishments: establishments,
+            draftedEstablishments: draftedEstablishments,
+        });
+
+    };
+
+    handleRemoveEstablishment = async () => {
+        this.setState({
+            loadingEstablishmentsData: true,
+            showDeleteEstablishmentDialog: false,
+        });
+        await this.establishmentService.draftEstablishment(this.state.selectedEstablishment!);
+        let establishments = await this.establishmentService.getEstablishments(false);
+        let draftedEstablishments = await this.establishmentService.getEstablishments(true);
+        this.setState({
+            selectedEstablishment: undefined,
+            loadingEstablishmentsData: false,
+            establishments: establishments,
+            draftedEstablishments: draftedEstablishments,
+        });
+
+    };
+    handleRestoreEstablishment = async () => {
+        this.setState({
+            loadingEstablishmentsData: true,
+            showRestoreEstablishmentDialog: false,
+        });
+        await this.establishmentService.undraftEstablishment(this.state.selectedEstablishment!);
+        let establishments = await this.establishmentService.getEstablishments(false);
+        let draftedEstablishments = await this.establishmentService.getEstablishments(true);
+        this.setState({
+            selectedEstablishment: undefined,
+            loadingEstablishmentsData: false,
+            establishments: establishments,
+            draftedEstablishments: draftedEstablishments,
+        });
 
     };
 
@@ -621,9 +749,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                             </Tabs>
                         </Box>
                         <CustomTabPanel style={{
-                            display: 'flex',
-                            flexFlow: 'column',
-                            height: 'calc(100% - 50px)',
+                            flex: '1 1 auto',
                         }} value={this.state.mainTabindex} index={0} >
                             <Box sx={{
                                 flex: '1 1 auto',
@@ -632,6 +758,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                     <Tabs value={this.state.subTabindex} onChange={this.handleSubTabChange} aria-label="basic tabs example">
                                         <Tab label="Entreprise" />
                                         <Tab label="Produits" />
+                                        <Tab label="Spécialités et établissements" />
                                         <Tab label="Clients" />
                                         <Tab label="Commentaires et Motivations" />
                                         <Tab label="Objectifs d'équipe" />
@@ -736,7 +863,9 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                                     display: 'flex',
                                                     flexDirection: 'row'
                                                 }}>
-                                                    <SpecialityTypeDropdown onSelect={this.handleSelectSpecialityType} />
+                                                    <SpecialityTypeDropdown
+                                                        initType={this.state.selectedSpecialityType}
+                                                        onSelect={this.handleSelectSpecialityType} />
                                                     <IconButton onClick={() => {
                                                         this.setState({ showSpecialityDialog: true, selectedSpeciality: undefined });
                                                     }}
@@ -764,20 +893,54 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                             </div>
                                             <Divider orientation="vertical" flexItem component="div" style={{ width: '0.5%' }} sx={{ borderRight: 'solid grey 1px' }} />
                                             <div style={{ width: '70%', padding: '0px 8px' }}>
-
-                                                <SupplierTable
-                                                    isLoading={this.state.loadingSuppliersData}
-                                                    data={this.state.suppliers}
-                                                    page={this.state.supplierPage}
-                                                    size={this.state.supplierSize}
-                                                    total={this.state.suppliersTotal}
-                                                    onRemove={(id) => {
-                                                        // this.setState({ showDeleteSupplierDialog: true, selectedSupplierId: id });
+                                                <IconButton onClick={() => {
+                                                    this.setState({ showEstablishmentDialog: true, selectedEstablishment: undefined });
+                                                }}
+                                                    sx={{
+                                                        margin: '0px 0px 8px 8px',
+                                                        border: 'solid grey 1px',
+                                                        backgroundColor: 'white',
+                                                        borderRadius: '4px',
+                                                        height: '40px',
+                                                    }}>
+                                                    <AddIcon />
+                                                </IconButton>
+                                                <EstablishmentTable
+                                                    isLoading={this.state.loadingEstablishmentsData}
+                                                    data={this.state.establishments}
+                                                    onRemove={(establishment) => {
+                                                        this.setState({ showDeleteEstablishmentDialog: true, selectedEstablishment: establishment });
                                                     }}
-                                                    pageChange={this.handleSupplierPageChange}
-                                                ></SupplierTable>
+                                                    onEdit={(establishment) => {
+                                                        this.setState({ showEstablishmentDialog: true, selectedEstablishment: establishment });
+                                                    }}
+                                                ></EstablishmentTable>
 
                                             </div>
+                                        </div>
+                                    </div>
+
+                                </CustomTabPanel>
+                                <CustomTabPanel
+                                    style={{
+                                        flex: '1 1 auto',
+                                        height: 'calc(100% - 50px)',
+                                    }} value={this.state.subTabindex} index={3} >
+                                    <div style={{
+                                        flex: '1 1 auto',
+                                    }}>
+                                        <div style={{ width: '100%', }}>
+                                            <SupplierTable
+                                                isLoading={this.state.loadingSuppliersData}
+                                                data={this.state.suppliers}
+                                                page={this.state.supplierPage}
+                                                size={this.state.supplierSize}
+                                                total={this.state.suppliersTotal}
+                                                onRemove={(id) => {
+                                                    // this.setState({ showDeleteSupplierDialog: true, selectedSupplierId: id });
+                                                }}
+                                                pageChange={this.handleSupplierPageChange}
+                                            ></SupplierTable>
                                         </div>
                                     </div>
 
@@ -786,7 +949,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                     flex: '1 1 auto',
                                 }}
                                     value={this.state.subTabindex}
-                                    index={3} >
+                                    index={4} >
                                     <div style={{
                                     }}>
                                         <div style={{
@@ -837,6 +1000,332 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                                         }}
                                                         onRemove={(motivation) => {
                                                             this.setState({ showDeleteMotivationDialog: true, selectedMotivation: motivation });
+                                                        }}
+
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </CustomTabPanel>
+                                <CustomTabPanel style={{
+                                    flex: '1 1 auto',
+                                }}
+                                    value={this.state.subTabindex}
+                                    index={5} >
+                                    <div style={{
+                                    }}>
+                                        <MonthYearPicker initialDate={this.state.selectedDate} onPick={this.handleOnPickDate}></MonthYearPicker >
+
+                                        <div style={{
+                                            display: 'flex',
+                                            width: '100%',
+                                        }}>
+                                            <div style={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
+
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    flex: '1',
+                                                    alignItems: 'stretch',
+                                                    padding: '8px 8px 0px 8px',
+                                                }}>
+                                                    <GoalTable
+                                                        isLoading={this.state.savingGoalsChanges}
+                                                        data={this.state.userGoals}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div style={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    flex: '1',
+                                                    alignItems: 'stretch',
+                                                    padding: '8px 8px 0px 8px',
+                                                }}>
+                                                    <GoalTable
+                                                        isLoading={this.state.savingGoalsChanges}
+                                                        data={this.state.kamGoals}
+
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <IconButton
+                                            onClick={this.handleSaveGoalsChange}
+                                            sx={{
+                                                marginLeft: '8px',
+                                                marginTop: '16px',
+                                                border: 'solid grey 1px',
+                                                backgroundColor: 'white',
+                                                borderRadius: '4px',
+                                                height: '40px',
+                                                fontSize: '16px',
+                                                width: '245px',
+                                                color: 'teal'
+                                            }}>
+                                            <SaveIcon />
+                                            Enregistrer les modifications
+                                        </IconButton>
+                                    </div>
+
+                                </CustomTabPanel>
+                                <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} onClose={this.handleCloseSanckbar} open={this.state.showSnackbar} autoHideDuration={3000} message={this.state.snackbarMessage} />
+
+                                <YesNoDialog onNo={() => {
+                                    this.setState({ showDeleteSpecialityDialog: false });
+                                }} onYes={() => this.handleRemoveSpeciality()} isOpen={this.state.showDeleteSpecialityDialog} onClose={() => {
+                                    this.setState({ showDeleteSpecialityDialog: false });
+                                }} message='Voulez-vous supprimer cette spécialité?'></YesNoDialog>
+                                <YesNoDialog onNo={() => {
+                                    this.setState({ showDeleteEstablishmentDialog: false });
+                                }} onYes={() => this.handleRemoveEstablishment()} isOpen={this.state.showDeleteEstablishmentDialog} onClose={() => {
+                                    this.setState({ showDeleteEstablishmentDialog: false });
+                                }} message='Voulez-vous supprimer cet établissement?'></YesNoDialog>
+                                <YesNoDialog onNo={() => {
+                                    this.setState({ showDeleteCommentDialog: false });
+                                }} onYes={() => this.handleRemoveComment()} isOpen={this.state.showDeleteCommentDialog} onClose={() => {
+                                    this.setState({ showDeleteCommentDialog: false });
+                                }} message='Voulez-vous supprimer ce commentaire?'></YesNoDialog>
+                                <YesNoDialog onNo={() => {
+                                    this.setState({ showDeleteMotivationDialog: false });
+                                }} onYes={() => this.handleRemoveMotivation()} isOpen={this.state.showDeleteMotivationDialog} onClose={() => {
+                                    this.setState({ showDeleteMotivationDialog: false });
+                                }} message='Voulez-vous supprimer cette motivation?'></YesNoDialog>
+                                <YesNoDialog onNo={() => {
+                                    this.setState({ showDeleteSupplierDialog: false });
+                                }} onYes={() => this.handleRemoveSupplier()} isOpen={this.state.showDeleteSupplierDialog} onClose={() => {
+                                    this.setState({ showDeleteSupplierDialog: false });
+                                }} message='Voulez-vous supprimer cette fournisseur?'></YesNoDialog>
+                                <YesNoDialog onNo={() => {
+                                    this.setState({ showDeleteProductDialog: false });
+                                }} onYes={() => this.handleRemoveProduct()} isOpen={this.state.showDeleteProductDialog} onClose={() => {
+                                    this.setState({ showDeleteProductDialog: false });
+                                }} message='Voulez-vous supprimer ce produit?'></YesNoDialog>
+                                <SpecialityDialog
+                                    isOpen={this.state.showSpecialityDialog}
+                                    initSpeciality={this.state.selectedSpeciality}
+                                    onClose={() => {
+                                        this.setState({ showSpecialityDialog: false, selectedSpeciality: undefined });
+                                    }}
+                                    initType={this.state.selectedSpecialityType}
+                                    onAdd={this.handleCreateSpeciality}
+                                    onEdit={this.handleEditSpeciality}
+                                ></SpecialityDialog>
+                                <CommentDialog
+                                    isOpen={this.state.showCommentDialog}
+                                    initComment={this.state.selectedComment!}
+                                    onClose={() => {
+                                        this.setState({ showCommentDialog: false, selectedComment: undefined });
+                                    }}
+                                    onEdit={this.handleEditComment}
+                                ></CommentDialog>
+                                <MotivationDialog
+                                    isOpen={this.state.showMotivationDialog}
+                                    initMotivation={this.state.selectedMotivation!}
+                                    onClose={() => {
+                                        this.setState({ showMotivationDialog: false, selectedMotivation: undefined });
+                                    }}
+                                    onEdit={this.handleEditMotivation}
+                                ></MotivationDialog>
+                                <ProductDialog
+                                    isOpen={this.state.showProductDialog}
+                                    initProduct={this.state.selectedProduct!}
+                                    onClose={() => {
+                                        this.setState({ showProductDialog: false, selectedProduct: undefined });
+                                    }}
+                                    onEdit={this.handleEditProduct}
+                                    onAdd={this.handleCreateProduct}
+                                ></ProductDialog>
+                                <EstablishmentDialog
+                                    isOpen={this.state.showEstablishmentDialog}
+                                    wilayas={this.state.wilayas}
+                                    initEstablishment={this.state.selectedEstablishment!}
+                                    onClose={() => {
+                                        this.setState({ showEstablishmentDialog: false, selectedEstablishment: undefined });
+                                    }}
+                                    onEdit={this.handleEditEstablishment}
+                                    onAdd={this.handleCreateEstablishment}
+                                ></EstablishmentDialog>
+                            </Box>
+                        </CustomTabPanel>
+                        <CustomTabPanel style={{
+                            flex: '1 1 auto',
+                        }} value={this.state.mainTabindex} index={1} >
+                            <Box sx={{
+                                flex: '1 1 auto',
+                            }}>
+                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                    <Tabs value={this.state.subTabindex} onChange={this.handleSubTabChange} aria-label="basic tabs example">
+
+                                        <Tab label="Produits" />
+                                        <Tab label="Spécialités et établissements" />
+                                        <Tab label="Clients" />
+                                        <Tab label="Commentaires et Motivations" />
+                                    </Tabs>
+                                </Box>
+                                <CustomTabPanel style={{
+                                    flex: '1 1 auto',
+                                }} value={this.state.subTabindex} index={0} >
+                                    <div className='config-container'>
+                                        <div style={{ width: '100%', }}>
+                                            <div style={{
+                                                display: 'flex'
+                                            }}>
+                                                <ProductTypeDropdown
+                                                    onSelect={this.handleSelectProductType}
+                                                ></ProductTypeDropdown>
+                                                <IconButton onClick={() => {
+                                                    this.setState({ showProductDialog: true, selectedProduct: undefined });
+                                                }}
+                                                    sx={{
+                                                        marginLeft: '8px',
+                                                        border: 'solid grey 1px',
+                                                        backgroundColor: 'white',
+                                                        borderRadius: '4px',
+                                                        height: '40px',
+                                                        marginBottom: '8px'
+                                                    }}>
+                                                    <AddIcon />
+                                                </IconButton>
+                                            </div>
+                                            <DraftedProductTable
+                                                id='ProductTable'
+                                                data={this.state.draftedProducts}
+                                                onRestore={(product) => {
+                                                    this.setState({ showRestoreProductDialog: true, selectedProduct: product });
+                                                }}
+                                                isLoading={this.state.loadingProductsData}
+                                            ></DraftedProductTable>
+                                        </div>
+                                    </div>
+                                </CustomTabPanel>
+                                <CustomTabPanel
+                                    style={{
+                                        flex: '1 1 auto',
+                                        height: 'calc(100% - 50px)',
+                                    }} value={this.state.subTabindex} index={1} >
+                                    <div style={{
+                                        flex: '1 1 auto',
+                                    }}>
+                                        <div style={{ width: '100%', display: 'flex', flexDirection: 'row', }}>
+                                            <div style={{ width: '30%', padding: '0px 8px' }}>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'row'
+                                                }}>
+                                                    <SpecialityTypeDropdown
+                                                        initType={this.state.selectedSpecialityType}
+                                                        onSelect={this.handleSelectSpecialityType} />
+                                                    <IconButton onClick={() => {
+                                                        this.setState({ showSpecialityDialog: true, selectedSpeciality: undefined });
+                                                    }}
+                                                        sx={{
+                                                            marginLeft: '8px',
+                                                            border: 'solid grey 1px',
+                                                            backgroundColor: 'white',
+                                                            borderRadius: '4px',
+                                                            height: '40px',
+                                                        }}>
+                                                        <AddIcon />
+                                                    </IconButton>
+                                                </div>
+
+                                                <DraftedSpecialityTable
+                                                    isLoading={this.state.loadingSpecialitiesData}
+                                                    data={this.state.draftedSpecialities}
+                                                    onRestore={(speciality) => {
+                                                        this.setState({ showRestoreSpecialityDialog: true, selectedSpeciality: speciality });
+                                                    }}
+
+                                                />
+                                            </div>
+                                            <Divider orientation="vertical" flexItem component="div" style={{ width: '0.5%' }} sx={{ borderRight: 'solid grey 1px' }} />
+                                            <div style={{ width: '70%', padding: '0px 8px' }}>
+                                                <DraftedEstablishmentTable
+                                                    isLoading={this.state.loadingEstablishmentsData}
+                                                    data={this.state.draftedEstablishments}
+                                                    onRestore={(establishment) => {
+                                                        this.setState({ showRestoreEstablishmentDialog: true, selectedEstablishment: establishment });
+                                                    }}
+                                                ></DraftedEstablishmentTable>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </CustomTabPanel>
+                                <CustomTabPanel
+                                    style={{
+                                        flex: '1 1 auto',
+                                        height: 'calc(100% - 50px)',
+                                    }} value={this.state.subTabindex} index={2} >
+                                    <div style={{
+                                        flex: '1 1 auto',
+                                    }}>
+                                        <div style={{ width: '100%', }}>
+
+                                            <SupplierTable
+                                                isLoading={this.state.loadingSuppliersData}
+                                                data={this.state.suppliers}
+                                                page={this.state.supplierPage}
+                                                size={this.state.supplierSize}
+                                                total={this.state.suppliersTotal}
+                                                onRemove={(id) => {
+                                                    // this.setState({ showDeleteSupplierDialog: true, selectedSupplierId: id });
+                                                }}
+                                                pageChange={this.handleSupplierPageChange}
+                                            ></SupplierTable>
+                                        </div>
+                                    </div>
+
+                                </CustomTabPanel>
+                                <CustomTabPanel style={{
+                                    flex: '1 1 auto',
+                                }}
+                                    value={this.state.subTabindex}
+                                    index={3} >
+                                    <div style={{
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            width: '100%',
+                                        }}>
+                                            <div style={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
+
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    flex: '1',
+                                                    alignItems: 'stretch',
+                                                    padding: '8px 8px 0px 8px',
+                                                }}>
+                                                    <DraftedCommentTable
+                                                        isLoading={this.state.loadingCommentsData}
+                                                        data={this.state.draftedComments}
+                                                        onRestore={(comment) => {
+                                                            this.setState({ showRestoreCommentDialog: true, selectedComment: comment });
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <Divider orientation="vertical" flexItem component="div" style={{ width: '0.5%' }} sx={{ borderRight: 'solid grey 1px' }} />
+                                            <div style={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
+
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    flex: '1',
+                                                    alignItems: 'stretch',
+                                                    padding: '8px 8px 0px 8px',
+                                                }}>
+                                                    <DraftedMotivationTable
+                                                        isLoading={this.state.loadingMotivationsData}
+                                                        data={this.state.draftedMotivations}
+                                                        onRestore={(motivation) => {
+                                                            this.setState({ showRestoreMotivationDialog: true, selectedMotivation: motivation });
                                                         }}
 
                                                     />
@@ -911,382 +1400,17 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
 
                                 </CustomTabPanel>
                                 <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} onClose={this.handleCloseSanckbar} open={this.state.showSnackbar} autoHideDuration={3000} message={this.state.snackbarMessage} />
-                                <YesNoDialog onNo={() => {
-                                    this.setState({ showDeleteSpecialityDialog: false });
-                                }} onYes={() => this.handleRemoveSpeciality()} isOpen={this.state.showDeleteSpecialityDialog} onClose={() => {
-                                    this.setState({ showDeleteSpecialityDialog: false });
-                                }} message="Vous n'avez pas enregistré les modifications, voulez-vous continuer sans enregistrer?"></YesNoDialog>
-                                <YesNoDialog onNo={() => {
-                                    this.setState({ showDeleteSpecialityDialog: false });
-                                }} onYes={() => this.handleRemoveSpeciality()} isOpen={this.state.showDeleteSpecialityDialog} onClose={() => {
-                                    this.setState({ showDeleteSpecialityDialog: false });
-                                }} message='Voulez-vous supprimer cette spécialité?'></YesNoDialog>
-                                <YesNoDialog onNo={() => {
-                                    this.setState({ showDeleteCommentDialog: false });
-                                }} onYes={() => this.handleRemoveComment()} isOpen={this.state.showDeleteCommentDialog} onClose={() => {
-                                    this.setState({ showDeleteCommentDialog: false });
-                                }} message='Voulez-vous supprimer ce commentaire?'></YesNoDialog>
-                                <YesNoDialog onNo={() => {
-                                    this.setState({ showDeleteMotivationDialog: false });
-                                }} onYes={() => this.handleRemoveMotivation()} isOpen={this.state.showDeleteMotivationDialog} onClose={() => {
-                                    this.setState({ showDeleteMotivationDialog: false });
-                                }} message='Voulez-vous supprimer cette motivation?'></YesNoDialog>
-                                <YesNoDialog onNo={() => {
-                                    this.setState({ showDeleteSupplierDialog: false });
-                                }} onYes={() => this.handleRemoveSupplier()} isOpen={this.state.showDeleteSupplierDialog} onClose={() => {
-                                    this.setState({ showDeleteSupplierDialog: false });
-                                }} message='Voulez-vous supprimer cette fournisseur?'></YesNoDialog>
-                                <YesNoDialog onNo={() => {
-                                    this.setState({ showDeleteProductDialog: false });
-                                }} onYes={() => this.handleRemoveProduct()} isOpen={this.state.showDeleteProductDialog} onClose={() => {
-                                    this.setState({ showDeleteProductDialog: false });
-                                }} message='Voulez-vous supprimer ce produit?'></YesNoDialog>
-                                <SpecialityDialog
-                                    isOpen={this.state.showSpecialityDialog}
-                                    initSpeciality={this.state.selectedSpeciality}
-                                    onClose={() => {
-                                        this.setState({ showSpecialityDialog: false, selectedSpeciality: undefined });
-                                    }}
-                                    initType={this.state.selectedSpecialityType}
-                                    onAdd={this.handleCreateSpeciality}
-                                    onEdit={this.handleEditSpeciality}
-                                ></SpecialityDialog>
-                                <CommentDialog
-                                    isOpen={this.state.showCommentDialog}
-                                    initComment={this.state.selectedComment!}
-                                    onClose={() => {
-                                        this.setState({ showCommentDialog: false, selectedComment: undefined });
-                                    }}
-                                    onEdit={this.handleEditComment}
-                                ></CommentDialog>
-                                <MotivationDialog
-                                    isOpen={this.state.showMotivationDialog}
-                                    initMotivation={this.state.selectedMotivation!}
-                                    onClose={() => {
-                                        this.setState({ showMotivationDialog: false, selectedMotivation: undefined });
-                                    }}
-                                    onEdit={this.handleEditMotivation}
-                                ></MotivationDialog>
-                                <ProductDialog
-                                    isOpen={this.state.showProductDialog}
-                                    initProduct={this.state.selectedProduct!}
-                                    onClose={() => {
-                                        this.setState({ showProductDialog: false, selectedProduct: undefined });
-                                    }}
-                                    onEdit={this.handleEditProduct}
-                                    onAdd={this.handleCreateProduct}
-                                ></ProductDialog>
-                            </Box>
-                        </CustomTabPanel>
-                        {/* <CustomTabPanel style={{ display: 'flex', flexDirection: 'row', flexGrow: '1', height: 'calc(100% - 50px)', }} value={this.state.index} index={1} >
-                            <div className='config-container'>
-                                <div style={{ display: 'flex', width: '100%', maxHeight: '450px', marginTop: '8px' }}>
-                                    <div style={{ width: '33%', display: 'flex', flexDirection: 'column' }}>
-                                        <div style={{ display: 'flex', flexGrow: '1', padding: '8px 8px 0px 16px', marginBottom: '8px', maxHeight: '392px' }}>
-                                            <Table sx={{ flexGrow: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: '0px', width: "100%", borderRadius: '4px', }} aria-label="simple table">
-                                                <TableHead sx={{ height: '45px', display: 'flex', width: '100%' }}>
-                                                    <TableRow sx={{ display: 'flex', width: '100%' }}>
-                                                        <TableCell sx={{ width: '100%' }} align="left">Nom de spécialité </TableCell>
-                                                        <TableCell sx={{ width: '100%' }} align="right">Restaurer</TableCell>
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody sx={{ flexGrow: '1', overflowY: 'auto', overflowX: 'hidden', }}>
-                                                    {
-                                                        this.state.loadingSpecialitiesData ? (<div style={{
-                                                            width: '100%',
-                                                            flexGrow: '1',
-                                                            overflow: 'hidden',
-                                                            height: '100%',
-                                                            display: 'flex',
-                                                            justifyContent: 'center',
-                                                            alignItems: 'center',
-                                                        }}>
-                                                            <DotSpinner
-                                                                size={40}
-                                                                speed={0.9}
-                                                                color="black"
-                                                            />
-                                                        </div>) :
-                                                            this.state.draftedMedicalSpecialities.map((row) => (
-                                                                <TableRow
-                                                                    key={row.id}
-                                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                                >
-                                                                    <TableCell sx={{ width: '100%' }} align="left">{row.name}</TableCell>
-                                                                    <TableCell sx={{ width: '100%', padding: '0px 16px 0px 0px' }} align="right">
-                                                                        <IconButton onClick={() => {
-                                                                            this.setState({ showRestoreSpecialityDialog: true, selectedSpecialityId: row.id! });
-                                                                        }} >
-                                                                            <RestoreIcon />
-                                                                        </IconButton>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                </TableBody>
-                                            </Table>
 
-                                        </div>
-                                    </div>
-                                    <Divider orientation="vertical" flexItem component="div" style={{ width: '0.5%' }} sx={{ borderRight: 'solid grey 1px' }} />
-                                    <div style={{ width: '33%', display: 'flex', flexDirection: 'column' }}>
-
-                                        <div style={{ display: 'flex', flexGrow: '1', padding: '8px 8px 0px 16px', marginBottom: '8px', maxHeight: '392px' }}>
-                                            <Table sx={{ flexGrow: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: '0px', width: "100%", borderRadius: '4px', }} aria-label="simple table">
-                                                <TableHead sx={{ height: '45px', display: 'flex', width: '100%' }}>
-                                                    <TableRow sx={{ display: 'flex', width: '100%' }}>
-                                                        <TableCell sx={{ width: '100%' }} align="left">Contenu du commentaire</TableCell>
-                                                        <TableCell sx={{ width: '100%' }} align="right">Restaurer</TableCell>
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody sx={{ flexGrow: '1', overflowY: 'auto', overflowX: 'hidden', }}>
-                                                    {
-                                                        this.state.loadingCommentsData ? (<div style={{
-                                                            width: '100%',
-                                                            flexGrow: '1',
-                                                            overflow: 'hidden',
-                                                            height: '100%',
-                                                            display: 'flex',
-                                                            justifyContent: 'center',
-                                                            alignItems: 'center',
-                                                        }}>
-                                                            <DotSpinner
-                                                                size={40}
-                                                                speed={0.9}
-                                                                color="black"
-                                                            />
-                                                        </div>) :
-                                                            this.state.draftedComments.map((row) => (
-                                                                <TableRow
-                                                                    key={row.id}
-                                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                                >
-                                                                    <TableCell sx={{ width: '100%' }} align="left">{row.comment}</TableCell>
-                                                                    <TableCell sx={{ width: '100%', padding: '0px 16px 0px 0px' }} align="right">
-                                                                        <IconButton onClick={() => {
-                                                                            this.setState({ showRestoreCommentDialog: true, selectedCommentId: row.id! });
-                                                                        }}>
-                                                                            <RestoreIcon />
-                                                                        </IconButton>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                </TableBody>
-                                            </Table>
-                                        </div>
-                                    </div>
-                                    <Divider orientation="vertical" flexItem component="div" style={{ width: '0.5%' }} sx={{ borderRight: 'solid grey 1px' }} />
-                                    <div style={{ width: '33%', display: 'flex', flexDirection: 'column' }}>
-
-                                        <div style={{ display: 'flex', flexGrow: '1', padding: '8px 8px 0px 16px', marginBottom: '8px', maxHeight: '392px' }}>
-                                            <Table sx={{ flexGrow: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: '0px', width: "100%", borderRadius: '4px', }} aria-label="simple table">
-                                                <TableHead sx={{ height: '45px', display: 'flex', width: '100%' }}>
-                                                    <TableRow sx={{ display: 'flex', width: '100%' }}>
-                                                        <TableCell sx={{ width: '100%' }} align="left">Nom de motivation</TableCell>
-                                                        <TableCell sx={{ width: '100%' }} align="right">Restaurer</TableCell>
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody sx={{ flexGrow: '1', overflowY: 'auto', overflowX: 'hidden', }}>
-                                                    {
-                                                        this.state.loadingMotivationsData ? (<div style={{
-                                                            width: '100%',
-                                                            flexGrow: '1',
-                                                            overflow: 'hidden',
-                                                            height: '100%',
-                                                            display: 'flex',
-                                                            justifyContent: 'center',
-                                                            alignItems: 'center',
-                                                        }}>
-                                                            <DotSpinner
-                                                                size={40}
-                                                                speed={0.9}
-                                                                color="black"
-                                                            />
-                                                        </div>) :
-                                                            this.state.draftedMotivations.map((row) => (
-                                                                <TableRow
-                                                                    key={row.id}
-                                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                                >
-                                                                    <TableCell sx={{ width: '100%' }} align="left">{row.content}</TableCell>
-                                                                    <TableCell sx={{ width: '100%', padding: '0px 16px 0px 0px' }} align="right">
-                                                                        <IconButton onClick={() => {
-                                                                            this.setState({ showRestoreMotivationDialog: true, selectedMotivationId: row.id! });
-                                                                        }} >
-                                                                            <RestoreIcon />
-                                                                        </IconButton>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                </TableBody>
-                                            </Table>
-                                        </div>
-                                    </div>
-                                </div>
-                                <Divider component="div" style={{ margin: '0px 16px' }} sx={{ borderBottom: 'solid grey 1px' }} />
-                                <div style={{ width: '100%', display: 'flex', maxHeight: '450px' }}>
-
-                                    <div style={{ width: '60%', display: 'flex', flexGrow: '1', padding: '8px 8px 0px 8px', marginBottom: '8px', maxHeight: '400px' }}>
-                                        <Table sx={{ flexGrow: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: '0px', width: "100%", borderRadius: '4px', }} aria-label="simple table">
-                                            <TableHead sx={{ height: '45px', display: 'flex', width: '100%' }}>
-                                                <TableRow sx={{ display: 'flex', width: '100%' }}>
-                                                    <TableCell sx={{ width: '50%' }} align="left">Nom de fournisseur</TableCell>
-                                                    <TableCell sx={{ width: '50%' }} align="left">Wilaya et commune</TableCell>
-                                                    <TableCell sx={{ width: '50%' }} align="left">Type</TableCell>
-                                                    <TableCell sx={{ width: '50%' }} align="right">Restaurer</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody sx={{ flexGrow: '1', overflowY: 'auto', overflowX: 'hidden', }}>
-                                                {
-                                                    this.state.loadingSuppliersData ? (<div style={{
-                                                        width: '100%',
-                                                        flexGrow: '1',
-                                                        overflow: 'hidden',
-                                                        height: '100%',
-                                                        display: 'flex',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center',
-                                                    }}>
-                                                        <DotSpinner
-                                                            size={40}
-                                                            speed={0.9}
-                                                            color="black"
-                                                        />
-                                                    </div>) :
-                                                        this.state.draftedSuppliers.map((row) => (
-                                                            <TableRow
-                                                                key={row.id}
-                                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                            >
-                                                                <TableCell sx={{ width: '32%' }} align="left">{row.name}</TableCell>
-                                                                <TableCell sx={{ width: '32%' }} align="left">{row.wilaya + ', ' + row.commun}</TableCell>
-                                                                <TableCell sx={{ width: '50%' }} align="left">{row.type ? 'Pharmacétique' : 'Parapharmacétique'}</TableCell>
-                                                                <TableCell sx={{ padding: '0px 16px 0px 0px' }} align="right">
-                                                                    <IconButton onClick={() => {
-                                                                        this.setState({ showRestoreSupplierDialog: true, selectedSupplierId: row.id! });
-                                                                    }} >
-                                                                        <RestoreIcon />
-                                                                    </IconButton>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </div>
-                                <Divider component="div" style={{ margin: '0px 16px' }} sx={{ borderBottom: 'solid grey 1px' }} />
-                                <div style={{ width: '100%', display: 'flex', maxHeight: '450px', flexDirection: 'column', }}>
-                                    <h4 style={{ marginLeft: '16px' }}>
-                                        Produits
-                                    </h4>
-                                    <div style={{ display: 'flex', flexGrow: '1', padding: '0px 8px', marginBottom: '8px', maxHeight: '400px', width: '100%', }}>
-                                        <Table sx={{ flexGrow: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: '0px', width: "100%", borderRadius: '4px', }} aria-label="simple table">
-                                            <TableHead sx={{ height: '45px', display: 'flex', width: '100%' }}>
-                                                <TableRow sx={{ display: 'flex', width: '100%' }}>
-                                                    <TableCell sx={{ width: '50%' }} align="left">Nom de fournisseur</TableCell>
-                                                    <TableCell sx={{ width: '50%' }} align="left">
-                                                        UG
-                                                    </TableCell>
-                                                    <TableCell sx={{ width: '50%' }} align="left">Prix grossiste</TableCell>
-                                                    <TableCell sx={{ width: '50%' }} align="right">Restaurer</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody sx={{ flexGrow: '1', overflowY: 'auto', overflowX: 'hidden', }}>
-                                                {
-                                                    this.state.loadingProductsData ? (<div style={{
-                                                        width: '100%',
-                                                        flexGrow: '1',
-                                                        overflow: 'hidden',
-                                                        height: '100%',
-                                                        display: 'flex',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center',
-                                                    }}>
-                                                        <DotSpinner
-                                                            size={40}
-                                                            speed={0.9}
-                                                            color="black"
-                                                        />
-                                                    </div>) :
-                                                        this.state.draftedProducts.map((row) => (
-                                                            <TableRow
-                                                                key={row.id}
-                                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                            >
-                                                                <TableCell sx={{ width: '32%' }} align="left">{row.name}</TableCell>
-                                                                <TableCell sx={{ width: '32%' }} align="left">{row.ug}</TableCell>
-                                                                <TableCell sx={{ width: '50%' }} align="left">{row.wholesalePriceUnit}</TableCell>
-                                                                <TableCell sx={{ padding: '0px 16px 0px 0px' }} align="right">
-                                                                    <IconButton onClick={() => {
-                                                                        this.setState({ showRestoreProductDialog: true, selectedProductId: row.id! });
-                                                                    }} >
-                                                                        <RestoreIcon />
-                                                                    </IconButton>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </div>
-                                <Divider component="div" style={{ margin: '0px 16px' }} sx={{ borderBottom: 'solid grey 1px' }} />
-                                <div style={{ width: '100%', display: 'flex', maxHeight: '450px', flexDirection: 'column' }}>
-                                    <h4 style={{ marginLeft: '16px' }}>
-                                        Produits concurrent
-                                    </h4>
-                                    <div style={{ display: 'flex', flexGrow: '1', padding: '0px 8px', marginBottom: '8px', maxHeight: '400px', width: '100%', }}>
-                                        <Table sx={{ flexGrow: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: '0px', width: "100%", borderRadius: '4px', }} aria-label="simple table">
-                                            <TableHead sx={{ height: '45px', display: 'flex', width: '100%' }}>
-                                                <TableRow sx={{ display: 'flex', width: '100%' }}>
-                                                    <TableCell sx={{ width: '50%' }} align="left">Nom de fournisseur</TableCell>
-                                                    <TableCell sx={{ width: '50%' }} align="left">  UG </TableCell>
-                                                    <TableCell sx={{ width: '50%' }} align="left">Prix grossiste</TableCell>
-                                                    <TableCell sx={{ width: '50%' }} align="right">Restaurer</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody sx={{ flexGrow: '1', overflowY: 'auto', overflowX: 'hidden', }}>
-                                                {
-                                                    this.state.loadingCoProductsData ? (<div style={{
-                                                        width: '100%',
-                                                        flexGrow: '1',
-                                                        overflow: 'hidden',
-                                                        height: '100%',
-                                                        display: 'flex',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center',
-                                                    }}>
-                                                        <DotSpinner
-                                                            size={40}
-                                                            speed={0.9}
-                                                            color="black"
-                                                        />
-                                                    </div>) :
-                                                        this.state.draftedCoProducts.map((row) => (
-                                                            <TableRow
-                                                                key={row.id}
-                                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                            >
-                                                                <TableCell sx={{ width: '32%' }} align="left">{row.name}</TableCell>
-                                                                <TableCell sx={{ width: '32%' }} align="left">{row.ug}</TableCell>
-                                                                <TableCell sx={{ width: '50%' }} align="left">{row.wholesalePriceUnit}</TableCell>
-                                                                <TableCell sx={{ padding: '0px 16px 0px 0px' }} align="right">
-                                                                    <IconButton onClick={() => {
-                                                                        this.setState({ showRestoreCoProductDialog: true, selectedCoProductId: row.id! });
-                                                                    }} >
-                                                                        <RestoreIcon />
-                                                                    </IconButton>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </div>
-                                <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} onClose={this.handleCloseSanckbar} open={this.state.showSnackbar} autoHideDuration={3000} message={this.state.snackbarMessage} />
                                 <YesNoDialog onNo={() => {
                                     this.setState({ showRestoreSpecialityDialog: false });
                                 }} onYes={() => this.handleRestoreSpeciality()} isOpen={this.state.showRestoreSpecialityDialog} onClose={() => {
                                     this.setState({ showRestoreSpecialityDialog: false });
                                 }} message='Voulez-vous restaurer cette spécialité?'></YesNoDialog>
+                                <YesNoDialog onNo={() => {
+                                    this.setState({ showRestoreEstablishmentDialog: false });
+                                }} onYes={() => this.handleRestoreEstablishment()} isOpen={this.state.showRestoreEstablishmentDialog} onClose={() => {
+                                    this.setState({ showRestoreEstablishmentDialog: false });
+                                }} message='Voulez-vous restaurer cet établissement?'></YesNoDialog>
                                 <YesNoDialog onNo={() => {
                                     this.setState({ showRestoreCommentDialog: false });
                                 }} onYes={() => this.handleRestoreComment()} isOpen={this.state.showRestoreCommentDialog} onClose={() => {
@@ -1307,13 +1431,10 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                                 }} onYes={() => this.handleRestoreProduct()} isOpen={this.state.showRestoreProductDialog} onClose={() => {
                                     this.setState({ showRestoreProductDialog: false });
                                 }} message='Voulez-vous restaurer ce produit?'></YesNoDialog>
-                                <YesNoDialog onNo={() => {
-                                    this.setState({ showRestoreCoProductDialog: false });
-                                }} onYes={() => this.handleRestoreCoProduct()} isOpen={this.state.showRestoreCoProductDialog} onClose={() => {
-                                    this.setState({ showRestoreCoProductDialog: false });
-                                }} message='Voulez-vous restaurer ce produit concurrent?'></YesNoDialog>
-                            </div>
-                        </CustomTabPanel> */}
+
+                            </Box>
+                        </CustomTabPanel>
+
                     </Box >
                 </div >
 

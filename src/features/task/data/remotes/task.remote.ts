@@ -13,7 +13,7 @@ export default class TaskRemote {
                 region: task?.region,
                 startDate: task?.startDate,
                 endDate: task?.endDate,
-                remark: task?.assignerRemark,
+                assignerRemark: task?.assignerRemark,
                 target: task?.target?._id,
             }, {
                 headers: {

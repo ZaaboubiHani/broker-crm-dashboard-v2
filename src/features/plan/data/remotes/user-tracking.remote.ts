@@ -17,23 +17,27 @@ export default class UserTrackingRemote {
                     Authorization: `Bearer ${token}`
                 }
             });
-            if (response.status == 200) {
-
+            
+            if (response.status === 200) {
+                
                 let userTrackings: UserTrackingEntity[] = [];
                 let tasksTracking: { fullName: string, point: number[] }[] = [];
                 let visitsTracking: { point: number[], fullName: string, createdAt: string }[] = [];
                 userTrackings = response.data.trackings.map((data: any) => UserTrackingEntity.fromJson(data));
-                tasksTracking = response.data.tasksTracking.map((data: any) => {return  { fullName: data.fullName, point: data.location.split(',').map((p: string) => parseFloat(p.trim())) };});
+                
+                tasksTracking = response.data.tasksTracking.map((data: any) => { if(data.location) return  { fullName: data?.fullName, 
+                    point: data.location?.split(',').map((p: string) => parseFloat(p.trim())) };});
                 visitsTracking = response.data.visitsTracking.map((data: any) =>{
                     const createdAt = data.createdAt ? new Date(data.createdAt) : undefined;
                     createdAt?.setHours(createdAt.getHours() + 1);
-                    return { fullName: data.fullName, point: data.location.split(',').map((p: string) => parseFloat(p.trim())), createdAt: formatDateToYYYYMMDD(createdAt!) };
+                    if(data.location)
+                        return { fullName: data.fullName, point: data.location?.split(',').map((p: string) => parseFloat(p.trim())), createdAt: formatDateToYYYYMMDD(createdAt!) };
                 });
                 return new ResponseEntity({ code: response.status, data: { userTrackings: userTrackings, tasksTracking: tasksTracking, visitsTracking: visitsTracking } });
             }
             return new ResponseEntity({ code: response.status, data: {} });
         } catch (error: any) {
-            return new ResponseEntity({ code: error.response.status, message: error.response.statusText, data: {} });
+            return new ResponseEntity({ code:500, message:error.respose.message, data: {} });
         }
     }
 }

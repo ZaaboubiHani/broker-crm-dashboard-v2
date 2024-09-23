@@ -1,5 +1,4 @@
 import ClientEntity from "./client.entity";
-import CoProductEntity from "./co-product.entity";
 import CommentEntity from "./comment.entity";
 import ProductEntity from "./product.entity";
 import VisitEntity from "./visit.entity";
@@ -17,19 +16,14 @@ export default class ReportEntity {
         rotations: number,
     }[];
     coproducts?: {
-        product: CoProductEntity,
+        product: ProductEntity,
         quantity: number,
         rotations: number,
     }[];
     suppliers?: ClientEntity[];
     comments?: CommentEntity[];
     createdAt?: Date;
-    nearbyClients?: {
-        fullName: string,
-        remark?: string,
-        speciality?: string,
-        grade?: string,
-    }[];
+    nearbyClients?: ClientEntity[];
 
     constructor(data?: Partial<ReportEntity>) {
         if (data) {

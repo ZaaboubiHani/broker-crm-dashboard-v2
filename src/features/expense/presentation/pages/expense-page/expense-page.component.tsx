@@ -18,6 +18,7 @@ import { ValidationType } from '../../../../../core/entities/expenses-user.entit
 import ExpenseTable from '../../components/expense-table/expense-table.component';
 import ProofsDialog from '../../components/proofs-dialog/proofs-dialog.component';
 import ExpenseStatsDialog from '../../components/expense-stats-dialog/expense-stats-dialog.component';
+import KamExpenseTable from '../../components/kam-expense-table/kam-expense-table.component';
 
 interface ExpensePageProps {
     currentUser: UserModel;
@@ -330,7 +331,7 @@ class ExpensePage extends Component<ExpensePageProps, ExpensePageState> {
                                     flexGrow: '1',
                                     height: 'calc(100% - 170px)',
                                 }} >
-                                    <ExpenseTable data={this.state.kamExpenses} isLoading={this.state.loadingExpensesData}></ExpenseTable>
+                                    <KamExpenseTable data={this.state.kamExpenses} isLoading={this.state.loadingExpensesData}></KamExpenseTable>
                                 </div>
                                 <div style={{ border: 'solid #ddd 1px', borderRadius: '8px', backgroundColor: '#fff', margin: '0px 16px 8px 16px', height: '35px', display: 'flex', justifyContent: 'space-evenly', alignItems: 'center' }}>
                                     <h6 style={{ margin: '0px', height: '32px', fontSize: '16px', marginRight: '16px', display: 'flex', alignItems: 'center' }}>

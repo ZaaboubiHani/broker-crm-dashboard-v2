@@ -27,7 +27,6 @@ export class Api {
   private setupInterceptors(): void {
     this.axiosInstance.interceptors.request.use(
       (config) => {
-        console.log('Request interceptor', config);
         return config;
       },
       (error) => {

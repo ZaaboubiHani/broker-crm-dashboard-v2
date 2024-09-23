@@ -282,6 +282,8 @@ class PlanPage extends Component<PlanPageProps, PlanPageState> {
     compareDates = (a: VisitModel, b: VisitModel) => a!.visitDate!.getTime() - b!.visitDate!.getTime();
 
     handleDelegateDisplayMap = async (date: Date) => {
+    
+        
         this.setState({ loadingMap: true });
         var userTrackings = await this.userTrackingService.getUserTracking(date, this.state.selectedDelegate!._id!);
         this.setState({

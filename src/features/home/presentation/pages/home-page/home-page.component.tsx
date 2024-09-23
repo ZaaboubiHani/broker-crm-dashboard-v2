@@ -94,7 +94,9 @@ class HomePage extends Component<HomePageProps, HomePageState> {
 
     handleDisplayReport = async (visit: VisitModel) => {
         this.setState({ loadingReportData: true, selectedReport: undefined, showReportPanel: true });
+        
         let report = await this.reportService.getReport(visit.reportId!);
+        console.log(report);
         visit.report = report;
         this.setState({ loadingReportData: false, selectedReport: report, selectedVisit: visit, showReportPanel: true });
     };

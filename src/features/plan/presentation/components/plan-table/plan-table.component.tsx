@@ -104,6 +104,7 @@ const PlanTable: React.FC<PlanTableProps> = ({ data, id, isLoading, onDisplayDet
                             headerName: 'Carte de parcours',
                             renderCell(params) {
                                 return (<Button
+                                // disabled={true}
                                     onClick={() => {
                                         onDisplayMap(params.row.date,);
                                     }} variant="text"><MapIcon /></Button>);

@@ -180,7 +180,7 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ report, clientType, location,
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', margin: '0px', height: '32px' }}>
                                                     <div>
                                                         <h6 style={{ fontSize: 12, fontWeight: '400', margin: '0px', height: '16px' }}><b>Nom et Prénom:</b> {client.fullName ?? '_'}</h6>
-                                                        <h6 style={{ fontSize: 12, fontWeight: '400', margin: '0px', height: '16px' }}><b>Remarque:</b> {client.remark ?? '_'}</h6>
+                                                      
                                                     </div>
                                                 </div>
                                                 {
@@ -200,10 +200,10 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ report, clientType, location,
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', margin: '0px', height: '32px' }}>
                                                     <div>
                                                         <h6 style={{ fontSize: 12, fontWeight: '400', margin: '0px', height: '16px' }}><b>Nom et Prénom:</b> {client.fullName ?? '_'}</h6>
-                                                        <h6 style={{ fontSize: 12, fontWeight: '400', margin: '0px', height: '16px' }}><b>Remarque:</b> {client.remark ?? '_'}</h6>
+                                                     
                                                     </div>
                                                     <div>
-                                                        <h6 style={{ fontSize: 12, fontWeight: '400', margin: '0px', height: '16px' }}><b>Specialité:</b> {client.speciality ?? '_'}</h6>
+                                                        <h6 style={{ fontSize: 12, fontWeight: '400', margin: '0px', height: '16px' }}><b>Specialité:</b> {client.speciality?.name ?? '_'}</h6>
                                                         <h6 style={{ fontSize: 12, fontWeight: '400', margin: '0px', height: '16px' }}><b>Grade:</b> {client.grade ?? '_'}</h6>
                                                     </div>
                                                 </div>

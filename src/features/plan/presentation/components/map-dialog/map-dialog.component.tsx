@@ -26,7 +26,7 @@ const TrackingList: React.FC<TrackingListProps> = ({ trackings }) => {
         },
     });
 
-
+    
     return (
         <>
             <div style={{
@@ -132,10 +132,12 @@ const MapDialog: React.FC<MapDialogProps> = ({ isOpen, onClose, visitsCoordinate
 
         let sumLat = 0;
         let sumLng = 0;
+        
+        let filteredTasksPoints = tasksCoordinates.filter((t) =>  t && !isNaN(t.point[0]) && t.point).map(c => c.point);
+        let filteredVisitsPoints = visitsCoordinates.filter((t) => t && !isNaN(t.point[0]) && t.point).map(c => c.point);
 
-        let filteredTasksPoints = tasksCoordinates.filter((t) => !isNaN(t.point[0])).map(c => c.point);
-        let filteredVisitsPoints = visitsCoordinates.filter((t) => !isNaN(t.point[0])).map(c => c.point);
-
+        
+        
         for (const point of filteredVisitsPoints) {
             sumLat += point[0];
             sumLng += point[1];
@@ -148,11 +150,11 @@ const MapDialog: React.FC<MapDialogProps> = ({ isOpen, onClose, visitsCoordinate
             sumLat += point.latitude ? parseFloat(point.latitude) : 0;
             sumLng += point.longitude ? parseFloat(point.longitude) : 0;
         }
-
+        
         let sum = (filteredTasksPoints.length + filteredVisitsPoints.length + trackings.filter((c) => c.latitude).length) !== 0 ? (filteredTasksPoints.length + filteredVisitsPoints.length + trackings.filter((c) => c.latitude).length) : 1;
-        const avgLat = sumLat / sum;
-        const avgLng = sumLng / sum;
-
+        const avgLat = isNaN(sumLat / sum) ? 0 : sumLat / sum;
+        const avgLng = isNaN(sumLng / sum) ? 0 : sumLng / sum;
+       
         return [avgLat, avgLng];
     }
 
@@ -241,7 +243,7 @@ const MapDialog: React.FC<MapDialogProps> = ({ isOpen, onClose, visitsCoordinate
                 }
                 {
                     tasksCoordinates.map((c) => {
-                        return isNaN(c.point[0]) ? null : (
+                        return !c || isNaN(c.point[0]) ? null : (
                             <CircleMarker center={ll.latLng(c.point[0], c.point[1])} pathOptions={taskColorOptions} radius={5}>
                                 <Popup>{c.fullName}</Popup>
                             </CircleMarker>
@@ -253,7 +255,7 @@ const MapDialog: React.FC<MapDialogProps> = ({ isOpen, onClose, visitsCoordinate
 
                 {
                     trackings.filter(t => t.latitude).map((c, index) => {
-                        return c.latitude ? (
+                        return c && c.latitude && !isNaN(parseFloat(c.latitude!)) ? (
                             <CircleMarker center={ll.latLng(parseFloat(c.latitude!), parseFloat(c.longitude!))}
                                 pathOptions={trackingColorOptions} radius={5}>
 
@@ -264,7 +266,7 @@ const MapDialog: React.FC<MapDialogProps> = ({ isOpen, onClose, visitsCoordinate
                 }
                 {
                     trackings.filter(t => t.latitude).map((c, index) => {
-                        return c.latitude ? (
+                        return c && c.latitude && !isNaN(parseFloat(c.latitude!)) ? (
                             <SVGOverlay attributes={{ stroke: 'black', textAlign: 'center' }} bounds={ll.latLngBounds(ll.latLng(parseFloat(c.latitude!) - 0.0002, parseFloat(c.longitude!) - 0.0002), ll.latLng(parseFloat(c.latitude!) + 0.0002, parseFloat(c.longitude!) + 0.0002))}>
                                 <circle r="16" cx="50%" cy="50%" fill={showTrackingPath ? "white" : 'rgba(255,255,255,0.1)'} />
                                 <text x="50%" y="50%" style={{ transform: 'translate(-10%,5%)', }} fontSize={16} stroke={showTrackingPath ? "black" : 'rgba(0,0,0,0.1)'} >
@@ -278,7 +280,7 @@ const MapDialog: React.FC<MapDialogProps> = ({ isOpen, onClose, visitsCoordinate
                 {
                     trackingPolylines.map((tracking, index) => (<Polyline
                         pathOptions={{ fillColor: calculateColorGradient(index, tracking.length), color: calculateColorGradient(index, trackingPolylines.length), }}
-                        positions={tracking.map((c) => ll.latLng(parseFloat(c.latitude!), parseFloat(c.longitude!)))} />))
+                        positions={tracking.filter((c)=> c && c.latitude && !isNaN(parseFloat(c.latitude!))).map((c) => ll.latLng(parseFloat(c.latitude!), parseFloat(c.longitude!)))} />))
                 }
                 <TrackingList trackings={trackings.filter(t => t.latitude)}></TrackingList>
 

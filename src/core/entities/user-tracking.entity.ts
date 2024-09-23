@@ -18,8 +18,8 @@ export default class UserTrackingEntity {
         createdAt?.setHours(createdAt.getHours() + 1);
         const time = json.time ? new Date(json.time) : undefined;
         time?.setHours(time.getHours() + 1);
-        let latitude = json.location.split(',')[0].trim();
-        let longitude = json.location.split(',')[1].trim();
+        let latitude = json.location?.split(',')[0].trim().replace('Latitude: ','');
+        let longitude = json.location?.split(',')[1].trim().replace('Longitude: ','');
         return new UserTrackingEntity({ ...json, createdAt,time,latitude,longitude });
     }
 

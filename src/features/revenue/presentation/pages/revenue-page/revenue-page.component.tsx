@@ -126,7 +126,7 @@ class RevenuePage extends Component<RevenuePageProps, RevenuePageState> {
             });
         }
     };
-
+    
     handleOnPickDate = async (date: Date) => {
         this.setState({
             loadingRevenuesData: true,
@@ -141,6 +141,12 @@ class RevenuePage extends Component<RevenuePageProps, RevenuePageState> {
             });
         }
         else {
+            
+            var kamRevenues = await this.revenueService.getRevenues(date, undefined, this.state.isHonored, UserRole.kam);
+            this.setState({
+                kamRevenues: kamRevenues,
+            });
+            
             if (this.state.selectedSupervisor) {
                 this.setState({ selectedSupervisor: this.state.selectedSupervisor, loadingRevenuesData: true, showDetails: false });
                 var delegateRevenues = await this.revenueService.getRevenues(date, this.state.selectedSupervisor!._id!, this.state.isHonored);

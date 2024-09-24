@@ -92,11 +92,11 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ report, clientType, location,
                             <div>
                                 <h4 style={{ fontSize: 17, margin: '0px', height: '32px' }}><InventoryIcon style={{ fontSize: 17 }} /> Produits concurrents:</h4>
                                 {
-                                    report.coproducts?.map((coproduct) => (
+                                    report.coProducts?.map((coProduct) => (
                                         <div style={{ display: 'flex', justifyContent: 'space-between', margin: '0px', height: '32px' }}>
-                                            <h6 style={{ fontSize: 15, fontWeight: '400', margin: '0px', height: '32px' }}>{coproduct.product.name}</h6>
-                                            <h6 style={{ fontSize: 15, fontWeight: '400', margin: '0px', height: '32px' }}>quantité: {coproduct.quantity}</h6>
-                                            <h6 style={{ fontSize: 15, fontWeight: '400', margin: '0px', height: '32px' }}>{coproduct.rotations}/mois</h6>
+                                            <h6 style={{ fontSize: 15, fontWeight: '400', margin: '0px', height: '32px' }}>{coProduct.coProduct.name}</h6>
+                                            <h6 style={{ fontSize: 15, fontWeight: '400', margin: '0px', height: '32px' }}>quantité: {coProduct.quantity}</h6>
+                                            <h6 style={{ fontSize: 15, fontWeight: '400', margin: '0px', height: '32px' }}>{coProduct.rotations}/mois</h6>
                                         </div>
                                     ))
                                 }
@@ -167,8 +167,9 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ report, clientType, location,
                     margin: '0px',
                 }}>{report.note}</h6>
                 <Divider component="div" style={{ margin: '8px 0px' }} />
+               
                 {
-                    clientType === ClientType.wholesaler ?
+                    clientType === ClientType.wholesaler || !clientType ?
                         null :
                         clientType === ClientType.doctor ?
                             (

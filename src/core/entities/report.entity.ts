@@ -15,8 +15,8 @@ export default class ReportEntity {
         quantity: number,
         rotations: number,
     }[];
-    coproducts?: {
-        product: ProductEntity,
+    coProducts?: {
+        coProduct: ProductEntity,
         quantity: number,
         rotations: number,
     }[];
@@ -34,6 +34,8 @@ export default class ReportEntity {
     static fromJson(json: Record<string, any>): ReportEntity {
         const createdAt = json.createdAt ? new Date(json.createdAt) : undefined;
         createdAt?.setHours(createdAt.getHours() + 1);
+        
+        
         return new ReportEntity({ ...json, createdAt });
     }
 

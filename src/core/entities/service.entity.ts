@@ -4,6 +4,7 @@ import EstablishmentEntity from "./establishment.entity";
 export default class ServiceEntity {
     _id?: string;
     name?: string;
+    isDrafted?: boolean;
     establishments?: EstablishmentEntity[];
 
     constructor(data?: Partial<ServiceEntity>) {

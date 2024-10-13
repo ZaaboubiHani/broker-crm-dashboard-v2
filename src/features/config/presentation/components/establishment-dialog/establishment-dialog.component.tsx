@@ -63,7 +63,7 @@ const EstablishmentDialog: React.FC<EstablishmentDialogProps> = ({ onClose, isOp
 
     return (
         <Dialog fullWidth={true} maxWidth='md' onClose={handleClose} open={isOpen}  >
-            <DialogTitle>{initEstablishment ? 'Modifier ' : 'Ajouter'} un produit</DialogTitle>
+            <DialogTitle>{initEstablishment ? 'Modifier ' : 'Ajouter'} un établissement</DialogTitle>
             <DialogContent>
                 <Box sx={{ flex: '1', marginTop: '4px' }}>
                     <Grid container spacing={2}>

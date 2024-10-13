@@ -4,6 +4,7 @@ import ResponseEntity from "../../../../core/entities/response.entity";
 export default class EstablishmentRemote {
     async getEstablishments(isDrafted: boolean): Promise<ResponseEntity> {
         const token = localStorage.getItem('token');
+       
         try {
             var response = await Api.instance.getAxios().get(`/dashboard/establishments`, {
                 params: {

@@ -4,11 +4,12 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ClientModel from '../../../domain/models/client.model';
 import ScalableTable from '../../../../../core/components/scalable-table/scalable-table.component';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface SupplierTableProps {
     data: ClientModel[];
     isLoading: boolean;
-    onRemove: (id: string) => void;
+    onEdit: (supplier: ClientModel) => void;
     id?: string;
     page: number;
     size: number;
@@ -16,7 +17,7 @@ interface SupplierTableProps {
     pageChange: (page: number, size: number) => void;
 }
 
-const SupplierTable: React.FC<SupplierTableProps> = ({ data, id, isLoading, onRemove, total, size, page, pageChange, }) => {
+const SupplierTable: React.FC<SupplierTableProps> = ({ data, id, isLoading, onEdit, total, size, page, pageChange, }) => {
 
     const [rowsPerPage, setRowsPerPage] = React.useState(size);
 
@@ -30,7 +31,7 @@ const SupplierTable: React.FC<SupplierTableProps> = ({ data, id, isLoading, onRe
         <div id={id}
             style={{
                 borderRadius: '8px',
-                height: 'calc(100vh - 130px)',
+                height: 'calc(100vh - 180px)',
             }}>
             {
                 isLoading ? (<div style={{
@@ -56,7 +57,7 @@ const SupplierTable: React.FC<SupplierTableProps> = ({ data, id, isLoading, onRe
                                     id: row._id,
                                     name: row.fullName,
                                     location: row.wilaya?.name + ', ' + row.commune,
-                                    type: row.type,
+                                    type: row.speciality?.name,
                                     model: row,
                                 };
                             })]}
@@ -72,16 +73,18 @@ const SupplierTable: React.FC<SupplierTableProps> = ({ data, id, isLoading, onRe
                             },
                             {
                                 field: 'type',
-                                headerName: 'Type',
+                                headerName: 'Spécialité',
                             },
                             {
-                                field: 'delete',
-                                headerName: 'Supprimer',
+                                field: 'edit',
+                                headerName: 'Modifier',
                                 renderCell(params) {
-                                    return (<IconButton onClick={() => {
-                                        onRemove(params.row.id);
+                                    return (<IconButton 
+                                        disabled={params.row.type === "Supergros"}
+                                        onClick={() => {
+                                        onEdit(params.row.model);
                                     }} >
-                                        <DeleteIcon />
+                                        <EditIcon />
                                     </IconButton>);
                                 },
                             },

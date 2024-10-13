@@ -49,7 +49,6 @@ import ProductTable from "../components/product-table/product-table.component";
 import ProductTypeDropdown from "../components/product-type-dropdown/product-type-dropdown.component";
 import ProductService from "../../data/services/product.service";
 import { ProductType } from "../../../../core/entities/product.entity";
-import { ThirtyFpsSelect } from "@mui/icons-material";
 import DraftedProductTable from "../components/drafted-product-table/drafted-product-table.component";
 import DraftedCommentTable from "../components/drafted-comment-table/drafted-comment-table.component";
 import DraftedMotivationTable from "../components/drafted-motivation-table/drafted-motivation-table.component";
@@ -60,6 +59,11 @@ import EstablishmentTable from "../components/establishment-table/establishment-
 import EstablishmentDialog from "../components/establishment-dialog/establishment-dialog.component";
 import WilayaService from "../../data/services/wilaya.service";
 import DraftedEstablishmentTable from "../components/drafted-establishment-table/drafted-establishment-table.component";
+import SupplierDialog from "../components/supplier-dialog/supplier-dialog.component";
+import ClientService from "../../data/services/client.service";
+import ServiceModel from "../../domain/models/service.model";
+import ServiceService from "../../data/services/service.service";
+import ServiceTable from "../components/service-table/service-table.component";
 
 interface ConfigPageProps {
   currentUser: UserModel;
@@ -69,10 +73,13 @@ interface ConfigPageState {
   company: CompanyModel;
   isLoading: boolean;
   loadingSpecialitiesData: boolean;
+  services: ServiceModel[];
   specialities: SpecialityModel[];
   draftedSpecialities: SpecialityModel[];
+  wholesalerSpecialities: SpecialityModel[];
   selectedSpeciality?: SpecialityModel;
   selectedEstablishment?: EstablishmentModel;
+  selectedService?: ServiceModel;
   loadingCommentsData: boolean;
   motivations: MotivationModel[];
   draftedMotivations: MotivationModel[];
@@ -83,7 +90,6 @@ interface ConfigPageState {
   selectedSpecialityType: SpecialityType;
   selectedProductType: ProductType;
   suppliers: ClientModel[];
-  draftedSuppliers: ClientModel[];
   products: ProductModel[];
   draftedProducts: ProductModel[];
   establishments: EstablishmentModel[];
@@ -91,6 +97,7 @@ interface ConfigPageState {
   loadingSuppliersData: boolean;
   loadingProductsData: boolean;
   loadingEstablishmentsData: boolean;
+  loadingServicesData: boolean;
   wilayas: WilayaModel[];
   userGoals: GoalModel[];
   kamGoals: GoalModel[];
@@ -103,19 +110,20 @@ interface ConfigPageState {
   showDeleteCommentDialog: boolean;
   showCommentDialog: boolean;
   showEstablishmentDialog: boolean;
+  showSupplierDialog: boolean;
   showRestoreCommentDialog: boolean;
   showDeleteMotivationDialog: boolean;
   showMotivationDialog: boolean;
   showRestoreMotivationDialog: boolean;
   showRestoreEstablishmentDialog: boolean;
-  showDeleteSupplierDialog: boolean;
   showDeleteEstablishmentDialog: boolean;
-  showRestoreSupplierDialog: boolean;
   showDeleteProductDialog: boolean;
   showProductDialog: boolean;
   showRestoreProductDialog: boolean;
   savingCompanyChanges: boolean;
   savingGoalsChanges: boolean;
+  showDeleteServiceDialog: boolean;
+  showServiceDialog: boolean;
   goalHasChanged: boolean;
   snackbarMessage: string;
   selectedComment?: CommentModel;
@@ -135,12 +143,14 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     this.state = {
       isLoading: true,
       loadingSpecialitiesData: false,
+      loadingServicesData: false,
+      services: [],
       establishments: [],
+      wholesalerSpecialities: [],
       draftedEstablishments: [],
       specialities: [],
       draftedSpecialities: [],
       draftedProducts: [],
-      draftedSuppliers: [],
       loadingCommentsData: false,
       comments: [],
       draftedComments: [],
@@ -173,14 +183,15 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
       showDeleteMotivationDialog: false,
       showMotivationDialog: false,
       showRestoreMotivationDialog: false,
-      showDeleteSupplierDialog: false,
       showRestoreProductDialog: false,
       showProductDialog: false,
-      showRestoreSupplierDialog: false,
       showDeleteProductDialog: false,
       showEstablishmentDialog: false,
+      showSupplierDialog: false,
       showDeleteEstablishmentDialog: false,
       showRestoreEstablishmentDialog: false,
+      showDeleteServiceDialog: false,
+      showServiceDialog: false,
       snackbarMessage: "",
       mainTabindex: 0,
       subTabindex: 0,
@@ -195,11 +206,12 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
   specialityService = SpecialityService.getInstance();
   commentService = CommentService.getInstance();
   motivationService = MotivationService.getInstance();
-  // supplierService = SupplierService.getInstance();
+  clientService = ClientService.getInstance();
   goalService = GoalService.getInstance();
   productService = ProductService.getInstance();
   establishmentService = EstablishmentService.getInstance();
   wilayaService = WilayaService.getInstance();
+  serviceService = ServiceService.getInstance();
 
   loadConfigPageData = async () => {
     let company = await this.companyService.getSingleCompany();
@@ -217,6 +229,10 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     );
     let specialities = await this.specialityService.getSpecialities(
       SpecialityType.doctor,
+      false
+    );
+    let wholesalerSpecialities = await this.specialityService.getSpecialities(
+      SpecialityType.wholesaler,
       false
     );
     let draftedSpecialities = await this.specialityService.getSpecialities(
@@ -237,10 +253,19 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     let draftedEstablishments =
       await this.establishmentService.getEstablishments(true);
     let wilayas = await this.wilayaService.getAllWilayas();
+    let clients = await this.clientService.getAllClients();
+   
+    
+    let services = await this.serviceService.getServices(false);
 
     this.setState({
       company: company,
       wilayas: wilayas,
+      services: services,
+      suppliers: clients,
+      wholesalerSpecialities: wholesalerSpecialities.filter(
+        (s) => s.name !== "Supergros"
+      ),
       expensesConfig: expensesConfig,
       comments: comments,
       motivations: motivations,
@@ -255,45 +280,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
       establishments: establishments,
       draftedEstablishments: draftedEstablishments,
     });
-    // var { specialities, total: specialitiesTotal } = await this.specialityService.getAllMedicalSpecialities(this.state.specialityPage, this.state.specialitySize);
-    // var draftedSpecialities = await this.specialityService.getAllDraftedMedicalSpecialities();
-    // var { comments: comments, total: commentsTotal } = await this.commentService.getAllComments(this.state.commentPage, this.state.commentSize);
-    // var draftedComments = await this.commentService.getDraftedComments();
-    // var { motivations: motivations, total: motivationsTotal } = await this.motivationService.getAllMotivations(this.state.motivationPage, this.state.motivationSize);
-    // var draftedMotivations = await this.motivationService.getAllDraftedMotivations();
-    // var { suppliers: suppliers, total: suppliersTotal } = await this.supplierService.getSuppliersPaginated(this.state.supplierPage, this.state.supplierSize);
-    // var draftedSuppliers = await this.supplierService.getAllDraftedSuppliers();
-    // var wilayas = await this.wilayaService.getAllWilayas();
-    // var expensesConfig = await this.expenseService.getExpensesConfig();
-    // var currentUser = await this.userService.getMe();
-    // var goals = await this.goalService.getAllGoalsOfUserByDateMoth(new Date(), currentUser.id!);
-    // var products = await this.productService.getAllProducts();
-    // var draftedProducts = await this.productService.getAllDraftedProducts();
-    // if (!expensesConfig) {
-    //     expensesConfig = await this.expenseService.createExpensesConfig();
-    // }
-    // this.setState({
-    //     currentUser: currentUser,
-    //     specialitiesTotal: specialitiesTotal,
-    //     isLoading: false,
-    //     suppliersTotal: suppliersTotal,
-    //     medicalSpecialities: specialities,
-    //     draftedComments: draftedComments,
-    //     draftedMotivations: draftedMotivations,
-    //     draftedMedicalSpecialities: draftedSpecialities,
-    //     draftedProducts: draftedProducts,
-    //     draftedSuppliers: draftedSuppliers,
-    //     motivations: motivations,
-    //     motivationsTotal: motivationsTotal,
-    //     comments: comments,
-    //     commentsTotal: commentsTotal,
-    //     suppliers: suppliers,
-    //     wilayas: wilayas,
-    //     expensesConfig: expensesConfig!,
-    //     goals: goals,
-    //     products: products,
-    //     coproducts: coproducts,
-    // });
+    
     this.setState({
       isLoading: false,
     });
@@ -528,14 +515,6 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
       showSnackbar: true,
       snackbarMessage: "Motivation créé",
     });
-  };
-
-  handleCreateSupplier = async () => {
-    // this.setState({ loadingSuppliersData: true });
-    // await this.supplierService.createSupplier(this.state.supplier);
-    // var { suppliers, total } = await this.supplierService.getSuppliersPaginated(this.state.supplierPage, this.state.supplierSize);
-    // this.setState({ loadingSuppliersData: false, suppliers: suppliers, suppliersTotal: total, supplier: new SupplierModel({}) });
-    // this.setState({ showSnackbar: true, snackbarMessage: 'Fournisseur créé' });
   };
 
   handleCreateProduct = async (product: ProductModel) => {
@@ -774,6 +753,20 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
       draftedEstablishments: draftedEstablishments,
     });
   };
+
+  handleCreateSupplier = async (client: ClientModel) => {
+    this.setState({
+      loadingSuppliersData: true,
+      showSupplierDialog: false,
+    });
+    await this.clientService.createClient(client);
+    let clients = await this.clientService.getAllClients();
+
+    this.setState({
+      loadingSuppliersData: false,
+      suppliers: clients,
+    });
+  };
   handleEditEstablishment = async (establishment: EstablishmentModel) => {
     this.setState({
       loadingEstablishmentsData: true,
@@ -789,6 +782,19 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
       loadingEstablishmentsData: false,
       establishments: establishments,
       draftedEstablishments: draftedEstablishments,
+    });
+  };
+  handleEditSupplier = async (client: ClientModel) => {
+    this.setState({
+      loadingSuppliersData: true,
+      showSupplierDialog: false,
+    });
+    await this.clientService.updateClient(client);
+    let clients = await this.clientService.getAllClients();
+    
+    this.setState({
+      loadingSuppliersData: false,
+      suppliers: clients,
     });
   };
 
@@ -896,8 +902,8 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                   >
                     <Tab label="Entreprise" />
                     <Tab label="Produits" />
-                    <Tab label="Spécialités et établissements" />
-                    <Tab label="Clients" />
+                    <Tab label="Spécialités, établissements et services" />
+                    <Tab label="Fournisseurs" />
                     <Tab label="Commentaires et Motivations" />
                     <Tab label="Objectifs d'équipe" />
                   </Tabs>
@@ -1090,7 +1096,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                         style={{ width: "0.5%" }}
                         sx={{ borderRight: "solid grey 1px" }}
                       />
-                      <div style={{ width: "70%", padding: "0px 8px" }}>
+                      <div style={{ width: "40%", padding: "0px 8px" }}>
                         <IconButton
                           onClick={() => {
                             this.setState({
@@ -1125,6 +1131,41 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                           }}
                         ></EstablishmentTable>
                       </div>
+                      <div style={{ width: "30%", padding: "0px 8px" }}>
+                        <IconButton
+                          onClick={() => {
+                            this.setState({
+                              showEstablishmentDialog: true,
+                              selectedEstablishment: undefined,
+                            });
+                          }}
+                          sx={{
+                            margin: "0px 0px 8px 8px",
+                            border: "solid grey 1px",
+                            backgroundColor: "white",
+                            borderRadius: "4px",
+                            height: "40px",
+                          }}
+                        >
+                          <AddIcon />
+                        </IconButton>
+                        <ServiceTable
+                          isLoading={this.state.loadingServicesData}
+                          data={this.state.services}
+                          onRemove={(service) => {
+                            this.setState({
+                              showDeleteServiceDialog: true,
+                              selectedService: service,
+                            });
+                          }}
+                          onEdit={(service) => {
+                            this.setState({
+                              showServiceDialog: true,
+                              selectedService: service,
+                            });
+                          }}
+                        ></ServiceTable>
+                      </div>
                     </div>
                   </div>
                 </CustomTabPanel>
@@ -1142,14 +1183,34 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                     }}
                   >
                     <div style={{ width: "100%" }}>
+                      <IconButton
+                        onClick={() => {
+                          this.setState({
+                            showSupplierDialog: true,
+                            selectedSupplier: undefined,
+                          });
+                        }}
+                        sx={{
+                          margin: "0px 0px 8px 8px",
+                          border: "solid grey 1px",
+                          backgroundColor: "white",
+                          borderRadius: "4px",
+                          height: "40px",
+                        }}
+                      >
+                        <AddIcon />
+                      </IconButton>
                       <SupplierTable
                         isLoading={this.state.loadingSuppliersData}
                         data={this.state.suppliers}
                         page={this.state.supplierPage}
                         size={this.state.supplierSize}
                         total={this.state.suppliersTotal}
-                        onRemove={(id) => {
-                          // this.setState({ showDeleteSupplierDialog: true, selectedSupplierId: id });
+                        onEdit={(client) => {
+                          this.setState({
+                            showSupplierDialog: true,
+                            selectedSupplier: client,
+                          });
                         }}
                         pageChange={this.handleSupplierPageChange}
                       ></SupplierTable>
@@ -1276,7 +1337,10 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                     >
                       <div
                         style={{
-                          width: this.props.currentUser.role === UserRole.admin ? "50%" : "100%",
+                          width:
+                            this.props.currentUser.role === UserRole.admin
+                              ? "50%"
+                              : "100%",
                           display: "flex",
                           flexDirection: "column",
                         }}
@@ -1392,17 +1456,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                   }}
                   message="Voulez-vous supprimer cette motivation?"
                 ></YesNoDialog>
-                <YesNoDialog
-                  onNo={() => {
-                    this.setState({ showDeleteSupplierDialog: false });
-                  }}
-                  onYes={() => this.handleRemoveSupplier()}
-                  isOpen={this.state.showDeleteSupplierDialog}
-                  onClose={() => {
-                    this.setState({ showDeleteSupplierDialog: false });
-                  }}
-                  message="Voulez-vous supprimer cette fournisseur?"
-                ></YesNoDialog>
+                
                 <YesNoDialog
                   onNo={() => {
                     this.setState({ showDeleteProductDialog: false });
@@ -1474,6 +1528,20 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                   onEdit={this.handleEditEstablishment}
                   onAdd={this.handleCreateEstablishment}
                 ></EstablishmentDialog>
+                <SupplierDialog
+                  isOpen={this.state.showSupplierDialog}
+                  wilayas={this.state.wilayas}
+                  wholesalerSpecialities={this.state.wholesalerSpecialities}
+                  initSupplier={this.state.selectedSupplier!}
+                  onClose={() => {
+                    this.setState({
+                      showSupplierDialog: false,
+                      selectedSupplier: undefined,
+                    });
+                  }}
+                  onEdit={this.handleEditSupplier}
+                  onAdd={this.handleCreateSupplier}
+                ></SupplierDialog>
               </Box>
             </CustomTabPanel>
             <CustomTabPanel
@@ -1495,8 +1563,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                     aria-label="basic tabs example"
                   >
                     <Tab label="Produits" />
-                    <Tab label="Spécialités et établissements" />
-                    <Tab label="Clients" />
+                    <Tab label="Spécialités, établissements et services" />
                     <Tab label="Commentaires et Motivations" />
                   </Tabs>
                 </Box>
@@ -1633,40 +1700,13 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                     </div>
                   </div>
                 </CustomTabPanel>
+                
                 <CustomTabPanel
                   style={{
                     flex: "1 1 auto",
-                    height: "calc(100% - 50px)",
                   }}
                   value={this.state.subTabindex}
                   index={2}
-                >
-                  <div
-                    style={{
-                      flex: "1 1 auto",
-                    }}
-                  >
-                    <div style={{ width: "100%" }}>
-                      <SupplierTable
-                        isLoading={this.state.loadingSuppliersData}
-                        data={this.state.suppliers}
-                        page={this.state.supplierPage}
-                        size={this.state.supplierSize}
-                        total={this.state.suppliersTotal}
-                        onRemove={(id) => {
-                          // this.setState({ showDeleteSupplierDialog: true, selectedSupplierId: id });
-                        }}
-                        pageChange={this.handleSupplierPageChange}
-                      ></SupplierTable>
-                    </div>
-                  </div>
-                </CustomTabPanel>
-                <CustomTabPanel
-                  style={{
-                    flex: "1 1 auto",
-                  }}
-                  value={this.state.subTabindex}
-                  index={3}
                 >
                   <div style={{}}>
                     <div
@@ -1746,7 +1786,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                     flex: "1 1 auto",
                   }}
                   value={this.state.subTabindex}
-                  index={4}
+                  index={3}
                 >
                   <div style={{}}>
                     <MonthYearPicker
@@ -1877,17 +1917,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                   }}
                   message="Voulez-vous restaurer cette motivation?"
                 ></YesNoDialog>
-                <YesNoDialog
-                  onNo={() => {
-                    this.setState({ showRestoreSupplierDialog: false });
-                  }}
-                  onYes={() => this.handleRestoreSupplier()}
-                  isOpen={this.state.showRestoreSupplierDialog}
-                  onClose={() => {
-                    this.setState({ showRestoreSupplierDialog: false });
-                  }}
-                  message="Voulez-vous restaurer cette fournisseur?"
-                ></YesNoDialog>
+                
                 <YesNoDialog
                   onNo={() => {
                     this.setState({ showRestoreProductDialog: false });

@@ -64,6 +64,8 @@ import ClientService from "../../data/services/client.service";
 import ServiceModel from "../../domain/models/service.model";
 import ServiceService from "../../data/services/service.service";
 import ServiceTable from "../components/service-table/service-table.component";
+import ServiceDialog from "../components/service-dialog/service-dialog.component";
+import DraftedServiceTable from "../components/drafted-service-table/drafted-service-table.component";
 
 interface ConfigPageProps {
   currentUser: UserModel;
@@ -74,6 +76,7 @@ interface ConfigPageState {
   isLoading: boolean;
   loadingSpecialitiesData: boolean;
   services: ServiceModel[];
+  draftedServices: ServiceModel[];
   specialities: SpecialityModel[];
   draftedSpecialities: SpecialityModel[];
   wholesalerSpecialities: SpecialityModel[];
@@ -124,6 +127,7 @@ interface ConfigPageState {
   savingGoalsChanges: boolean;
   showDeleteServiceDialog: boolean;
   showServiceDialog: boolean;
+  showRestoreServiceDialog: boolean;
   goalHasChanged: boolean;
   snackbarMessage: string;
   selectedComment?: CommentModel;
@@ -144,6 +148,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
       isLoading: true,
       loadingSpecialitiesData: false,
       loadingServicesData: false,
+      draftedServices: [],
       services: [],
       establishments: [],
       wholesalerSpecialities: [],
@@ -176,6 +181,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
       supplierSize: 25,
       suppliersTotal: 0,
       showDeleteSpecialityDialog: false,
+      showRestoreServiceDialog: false,
       showRestoreSpecialityDialog: false,
       showDeleteCommentDialog: false,
       showCommentDialog: false,
@@ -257,11 +263,13 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
    
     
     let services = await this.serviceService.getServices(false);
+    let draftedServices = await this.serviceService.getServices(true);
 
     this.setState({
       company: company,
       wilayas: wilayas,
       services: services,
+      draftedServices: draftedServices,
       suppliers: clients,
       wholesalerSpecialities: wholesalerSpecialities.filter(
         (s) => s.name !== "Supergros"
@@ -312,20 +320,29 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
   };
 
   handleRestoreSpeciality = async () => {
-    // this.setState({ loadingSpecialitiesData: true, showRestoreSpecialityDialog: false });
-    // await this.specialityService.publishMedicalSpeciality(this.state.selectedSpecialityId);
-    // var { specialities, total: specialitiesTotal } = await this.specialityService.getAllMedicalSpecialities(this.state.specialityPage, this.state.specialitySize);
-    // var draftedSpecialities = await this.specialityService.getAllDraftedMedicalSpecialities();
-    // this.setState({
-    //     loadingSpecialitiesData: false,
-    //     medicalSpecialities: specialities,
-    //     specialitiesTotal: specialitiesTotal,
-    //     draftedMedicalSpecialities: draftedSpecialities
-    // });
-    // this.setState({
-    //     showSnackbar: true,
-    //     snackbarMessage: 'Spécialité restauré'
-    // });
+    this.setState({
+      loadingSpecialitiesData: true,
+      showDeleteSpecialityDialog: false,
+      showRestoreSpecialityDialog: false,
+    });
+    await this.specialityService.undraftSpeciality(
+      this.state.selectedSpeciality!
+    );
+    var specialities = await this.specialityService.getSpecialities(
+      this.state.selectedSpecialityType,
+      false
+    );
+    var draftedSpecialities = await this.specialityService.getSpecialities(
+      this.state.selectedSpecialityType,
+      true
+    );
+    this.setState({
+      loadingSpecialitiesData: false,
+      specialities: specialities,
+      draftedSpecialities: draftedSpecialities,
+      showSnackbar: true,
+      snackbarMessage: 'Spécialité restauré'
+    });
   };
 
   handleCreateSpeciality = async (speciality: SpecialityModel) => {
@@ -554,23 +571,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     });
   };
 
-  handleRemoveSupplier = async () => {
-    // this.setState({ loadingSuppliersData: true, showDeleteSupplierDialog: false });
-    // await this.supplierService.draftSupplier(this.state.selectedSupplierId);
-    // var { suppliers, total } = await this.supplierService.getSuppliersPaginated(this.state.supplierPage, this.state.supplierSize);
-    // var draftedSuppliers = await this.supplierService.getAllDraftedSuppliers();
-    // this.setState({ loadingSuppliersData: false, suppliers: suppliers, suppliersTotal: total, draftedSuppliers: draftedSuppliers });
-    // this.setState({ showSnackbar: true, snackbarMessage: 'Fournisseur supprimé' });
-  };
 
-  handleRestoreSupplier = async () => {
-    // this.setState({ loadingSuppliersData: true, showRestoreSupplierDialog: false });
-    // await this.supplierService.publishSupplier(this.state.selectedSupplierId);
-    // var { suppliers, total } = await this.supplierService.getSuppliersPaginated(this.state.supplierPage, this.state.supplierSize);
-    // var draftedSuppliers = await this.supplierService.getAllDraftedSuppliers();
-    // this.setState({ loadingSuppliersData: false, suppliers: suppliers, suppliersTotal: total, draftedSuppliers: draftedSuppliers });
-    // this.setState({ showSnackbar: true, snackbarMessage: 'Fournisseur restauré' });
-  };
 
   handleRemoveProduct = async () => {
     this.setState({
@@ -739,6 +740,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
   handleCreateEstablishment = async (establishment: EstablishmentModel) => {
     this.setState({
       loadingEstablishmentsData: true,
+      loadingServicesData: true,
       showEstablishmentDialog: false,
     });
     await this.establishmentService.createEstablishment(establishment);
@@ -747,8 +749,45 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     );
     let draftedEstablishments =
       await this.establishmentService.getEstablishments(true);
+      
+    let services = await this.serviceService.getServices(
+      false
+    );
+    let draftedServices =
+      await this.serviceService.getServices(true);
     this.setState({
       loadingEstablishmentsData: false,
+      loadingServicesData: false,
+      services: services,
+      draftedServices: draftedServices,
+      establishments: establishments,
+      draftedEstablishments: draftedEstablishments,
+    });
+  };
+
+  handleCreateService = async (service: ServiceModel) => {
+    this.setState({
+      loadingEstablishmentsData: true,
+      loadingServicesData: true,
+      showServiceDialog: false,
+    });
+    await this.serviceService.createService(service);
+    let establishments = await this.establishmentService.getEstablishments(
+      false
+    );
+    let draftedEstablishments =
+      await this.establishmentService.getEstablishments(true);
+      
+    let services = await this.serviceService.getServices(
+      false
+    );
+    let draftedServices =
+      await this.serviceService.getServices(true);
+    this.setState({
+      loadingEstablishmentsData: false,
+      loadingServicesData: false,
+      services: services,
+      draftedServices: draftedServices,
       establishments: establishments,
       draftedEstablishments: draftedEstablishments,
     });
@@ -770,6 +809,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
   handleEditEstablishment = async (establishment: EstablishmentModel) => {
     this.setState({
       loadingEstablishmentsData: true,
+      loadingServicesData: true,
       showEstablishmentDialog: false,
     });
     await this.establishmentService.updateEstablishment(establishment);
@@ -778,8 +818,44 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     );
     let draftedEstablishments =
       await this.establishmentService.getEstablishments(true);
+    
+    let services = await this.serviceService.getServices(
+      false
+    );
+    let draftedServices =
+      await this.serviceService.getServices(true);
     this.setState({
       loadingEstablishmentsData: false,
+      loadingServicesData: false,
+      services: services,
+      draftedServices: draftedServices,
+      establishments: establishments,
+      draftedEstablishments: draftedEstablishments,
+    });
+  };
+  handleEditService = async (service: ServiceModel) => {
+    this.setState({
+      loadingEstablishmentsData: true,
+      loadingServicesData: true,
+      showServiceDialog: false,
+    });
+    await this.serviceService.undraftService(service);
+    let establishments = await this.establishmentService.getEstablishments(
+      false
+    );
+    let draftedEstablishments =
+      await this.establishmentService.getEstablishments(true);
+    
+    let services = await this.serviceService.getServices(
+      false
+    );
+    let draftedServices =
+      await this.serviceService.getServices(true);
+    this.setState({
+      loadingEstablishmentsData: false,
+      loadingServicesData: false,
+      services: services,
+      draftedServices: draftedServices,
       establishments: establishments,
       draftedEstablishments: draftedEstablishments,
     });
@@ -802,6 +878,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     this.setState({
       loadingEstablishmentsData: true,
       showDeleteEstablishmentDialog: false,
+      loadingServicesData: true,
     });
     await this.establishmentService.draftEstablishment(
       this.state.selectedEstablishment!
@@ -811,17 +888,56 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     );
     let draftedEstablishments =
       await this.establishmentService.getEstablishments(true);
+      let services = await this.serviceService.getServices(
+        false
+      );
+      let draftedServices =
+        await this.serviceService.getServices(true);
     this.setState({
       selectedEstablishment: undefined,
       loadingEstablishmentsData: false,
+      loadingServicesData: false,
+      services: services,
+      draftedServices: draftedServices,
       establishments: establishments,
       draftedEstablishments: draftedEstablishments,
     });
   };
+  handleRemoveService = async () => {
+    this.setState({
+      loadingEstablishmentsData: true,
+      showDeleteServiceDialog: false,
+      loadingServicesData: true,
+    });
+    await this.serviceService.draftService(
+      this.state.selectedService!
+    );
+    let establishments = await this.establishmentService.getEstablishments(
+      false
+    );
+    let draftedEstablishments =
+      await this.establishmentService.getEstablishments(true);
+      let services = await this.serviceService.getServices(
+        false
+      );
+      let draftedServices =
+        await this.serviceService.getServices(true);
+    this.setState({
+      selectedService: undefined,
+      loadingEstablishmentsData: false,
+      loadingServicesData: false,
+      services: services,
+      draftedServices: draftedServices,
+      establishments: establishments,
+      draftedEstablishments: draftedEstablishments,
+    });
+  };
+
   handleRestoreEstablishment = async () => {
     this.setState({
       loadingEstablishmentsData: true,
       showRestoreEstablishmentDialog: false,
+      loadingServicesData: true,
     });
     await this.establishmentService.undraftEstablishment(
       this.state.selectedEstablishment!
@@ -831,9 +947,46 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
     );
     let draftedEstablishments =
       await this.establishmentService.getEstablishments(true);
+      let services = await this.serviceService.getServices(
+        false
+      );
+      let draftedServices =
+        await this.serviceService.getServices(true);
     this.setState({
       selectedEstablishment: undefined,
       loadingEstablishmentsData: false,
+      loadingServicesData: false,
+      services: services,
+      draftedServices: draftedServices,
+      establishments: establishments,
+      draftedEstablishments: draftedEstablishments,
+    });
+  };
+  handleRestoreService = async () => {
+    this.setState({
+      loadingEstablishmentsData: true,
+      showRestoreServiceDialog: false,
+      loadingServicesData: true,
+    });
+    await this.serviceService.undraftService(
+      this.state.selectedService!
+    );
+    let establishments = await this.establishmentService.getEstablishments(
+      false
+    );
+    let draftedEstablishments =
+      await this.establishmentService.getEstablishments(true);
+      let services = await this.serviceService.getServices(
+        false
+      );
+      let draftedServices =
+        await this.serviceService.getServices(true);
+    this.setState({
+      selectedService: undefined,
+      loadingEstablishmentsData: false,
+      loadingServicesData: false,
+      services: services,
+      draftedServices: draftedServices,
       establishments: establishments,
       draftedEstablishments: draftedEstablishments,
     });
@@ -1135,8 +1288,8 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                         <IconButton
                           onClick={() => {
                             this.setState({
-                              showEstablishmentDialog: true,
-                              selectedEstablishment: undefined,
+                              showServiceDialog: true,
+                              selectedService: undefined,
                             });
                           }}
                           sx={{
@@ -1436,6 +1589,17 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                 ></YesNoDialog>
                 <YesNoDialog
                   onNo={() => {
+                    this.setState({ showDeleteServiceDialog: false });
+                  }}
+                  onYes={() => this.handleRemoveService()}
+                  isOpen={this.state.showDeleteServiceDialog}
+                  onClose={() => {
+                    this.setState({ showDeleteServiceDialog: false });
+                  }}
+                  message="Voulez-vous supprimer ce service?"
+                ></YesNoDialog>
+                <YesNoDialog
+                  onNo={() => {
                     this.setState({ showDeleteCommentDialog: false });
                   }}
                   onYes={() => this.handleRemoveComment()}
@@ -1519,6 +1683,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                   isOpen={this.state.showEstablishmentDialog}
                   wilayas={this.state.wilayas}
                   initEstablishment={this.state.selectedEstablishment!}
+                  services={this.state.services}
                   onClose={() => {
                     this.setState({
                       showEstablishmentDialog: false,
@@ -1528,6 +1693,20 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                   onEdit={this.handleEditEstablishment}
                   onAdd={this.handleCreateEstablishment}
                 ></EstablishmentDialog>
+                <ServiceDialog
+                  isOpen={this.state.showServiceDialog}
+                  wilayas={this.state.wilayas}
+                  initService={this.state.selectedService!}
+                  establishments={this.state.establishments}
+                  onClose={() => {
+                    this.setState({
+                      showServiceDialog: false,
+                      selectedService: undefined,
+                    });
+                  }}
+                  onEdit={this.handleEditService}
+                  onAdd={this.handleCreateService}
+                ></ServiceDialog>
                 <SupplierDialog
                   isOpen={this.state.showSupplierDialog}
                   wilayas={this.state.wilayas}
@@ -1685,7 +1864,7 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                         style={{ width: "0.5%" }}
                         sx={{ borderRight: "solid grey 1px" }}
                       />
-                      <div style={{ width: "70%", padding: "0px 8px" }}>
+                      <div style={{ width: "40%", padding: "0px 8px" }}>
                         <DraftedEstablishmentTable
                           isLoading={this.state.loadingEstablishmentsData}
                           data={this.state.draftedEstablishments}
@@ -1696,6 +1875,25 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                             });
                           }}
                         ></DraftedEstablishmentTable>
+                      </div>
+                      <Divider
+                        orientation="vertical"
+                        flexItem
+                        component="div"
+                        style={{ width: "0.5%" }}
+                        sx={{ borderRight: "solid grey 1px" }}
+                      />
+                      <div style={{ width: "30%", padding: "0px 8px" }}>
+                        <DraftedServiceTable
+                          isLoading={this.state.loadingServicesData}
+                          data={this.state.draftedServices}
+                          onRestore={(service) => {
+                            this.setState({
+                              showRestoreServiceDialog: true,
+                              selectedService: service,
+                            });
+                          }}
+                        ></DraftedServiceTable>
                       </div>
                     </div>
                   </div>
@@ -1894,6 +2092,17 @@ class ConfigPage extends Component<ConfigPageProps, ConfigPageState> {
                     this.setState({ showRestoreEstablishmentDialog: false });
                   }}
                   message="Voulez-vous restaurer cet établissement?"
+                ></YesNoDialog>
+                <YesNoDialog
+                  onNo={() => {
+                    this.setState({ showRestoreServiceDialog: false });
+                  }}
+                  onYes={() => this.handleRestoreService()}
+                  isOpen={this.state.showRestoreServiceDialog}
+                  onClose={() => {
+                    this.setState({ showRestoreServiceDialog: false });
+                  }}
+                  message="Voulez-vous restaurer ce service?"
                 ></YesNoDialog>
                 <YesNoDialog
                   onNo={() => {

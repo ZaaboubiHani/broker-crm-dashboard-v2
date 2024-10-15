@@ -5,7 +5,6 @@ import { Api } from "../../../../core/api/api.source";
 export default class ServiceRemote {
   async getServices(isDrafted?: boolean): Promise<ResponseEntity> {
     const token = localStorage.getItem("token");
-    console.log("get services");
 
     try {
       var response = await Api.instance
@@ -16,9 +15,8 @@ export default class ServiceRemote {
           },
         });
       if (response.status == 200) {
-        console.log(response);
         let services: ServiceEntity[] = [];
-        services = response.data.docs.map((json: any) =>
+        services = response.data.map((json: any) =>
           ServiceEntity.fromJson(json)
         );
         return new ResponseEntity({ code: response.status, data: services });

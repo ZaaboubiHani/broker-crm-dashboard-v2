@@ -8,11 +8,17 @@ export enum CommandType {
     clearance = 'Destockage',
     direct = 'Direct',
 }
+export enum CommandStatus {
+    nonHonored = 'Non honoré',
+    honored = 'Honoré',
+    onHold = 'En attente',
+    canceled = 'Annulé',
+}
 
 export default class CommandEntity {
     _id?: string;
     visit?: VisitEntity;
-    isHonored?: boolean;
+    status?: CommandStatus;
     type?: CommandType;
     note?: string;
     total?: number;

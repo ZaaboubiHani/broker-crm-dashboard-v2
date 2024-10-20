@@ -1,3 +1,4 @@
+import { CommandStatus } from "../../../../core/entities/command.entity";
 import CommandModel from "../../domain/models/command.model";
 import CommandRepository from "../../domain/repositories/command.repository";
 import CommandRemote from "../remotes/command.remote";
@@ -19,12 +20,9 @@ export default class CommandService extends CommandRepository {
         let response = await this._commandRemote!.getCommands(date, page, size, userId);
         return response.data;
     }
-    async honorCommand(commandId: string, supplierId?: string): Promise<boolean> {
-        let response = await this._commandRemote!.honorCommand(true, commandId, supplierId);
+    async updateCommandStatus(status: CommandStatus,commandId: string, supplierId?: string): Promise<boolean> {
+        let response = await this._commandRemote!.updateCommandStatus(status, commandId, supplierId);
         return response.data;
     }
-    async dishonorCommand(commandId: string,): Promise<boolean> {
-        let response = await this._commandRemote!.honorCommand(false, commandId);
-        return response.data;
-    }
+   
 }

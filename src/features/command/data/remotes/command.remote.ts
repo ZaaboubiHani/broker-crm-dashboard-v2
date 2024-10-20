@@ -1,5 +1,5 @@
 import { Api } from "../../../../core/api/api.source";
-import CommandEntity from "../../../../core/entities/command.entity";
+import CommandEntity, { CommandStatus } from "../../../../core/entities/command.entity";
 import ResponseEntity from "../../../../core/entities/response.entity";
 
 export default class CommandRemote {
@@ -28,11 +28,11 @@ export default class CommandRemote {
         }
     }
 
-    async honorCommand(isHonored: boolean, commandId: string, supplierId?: string): Promise<ResponseEntity> {
+    async updateCommandStatus(status: CommandStatus, commandId: string, supplierId?: string): Promise<ResponseEntity> {
         const token = localStorage.getItem('token');
         try {
             var response = await Api.instance.getAxios().put(`/commands/${commandId}`, {
-                isHonored: isHonored,
+                status: status,
                 finalSupplier: supplierId ?? null,
             }, {
                 headers: {

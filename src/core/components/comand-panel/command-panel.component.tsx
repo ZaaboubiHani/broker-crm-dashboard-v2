@@ -23,7 +23,7 @@ interface CommandPanelProps {
 const generatePdf = (command: CommandEntity) => {
   const pdf = new jsPDF();
   pdf.setFontSize(12);
-  pdf.text(`Statut: ${command.isHonored ? "honoré" : "non honoré"}`, 10, 8);
+  pdf.text(`Statut: ${command.status}`, 10, 8);
   pdf.text(`Total: ${command.totalRemised},00 DA`, 10, 16);
   pdf.text(`Client: ${command?.visit?.client?.fullName}`, 10, 24);
   pdf.text(
@@ -202,7 +202,7 @@ const CommandPanel: React.FC<CommandPanelProps> = ({
           }}
         >
           {" "}
-          Statut: {command.isHonored ? "honoré" : "non honoré"}
+          Statut: {command.status}
         </h4>
         <h4
           style={{
